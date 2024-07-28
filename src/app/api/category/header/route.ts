@@ -27,12 +27,15 @@ function selectCategoryList() {
           link: true,
           subcategoryitems: {
             select: { name: true, link: true },
+            take: 6,
             orderBy: { index: "asc" },
           },
         },
+        take: 6,
         orderBy: { index: "asc" },
       },
     },
+    take: 6,
     orderBy: { index: "asc" },
   });
 }
