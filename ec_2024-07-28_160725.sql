@@ -1,0 +1,967 @@
+--
+-- PostgreSQL database dump
+--
+
+-- Dumped from database version 15.3
+-- Dumped by pg_dump version 15.3
+
+SET statement_timeout = 0;
+SET lock_timeout = 0;
+SET idle_in_transaction_session_timeout = 0;
+SET client_encoding = 'UTF8';
+SET standard_conforming_strings = on;
+SELECT pg_catalog.set_config('search_path', '', false);
+SET check_function_bodies = false;
+SET xmloption = content;
+SET client_min_messages = warning;
+SET row_security = off;
+
+--
+-- Name: pgcrypto; Type: EXTENSION; Schema: -; Owner: -
+--
+
+CREATE EXTENSION IF NOT EXISTS pgcrypto WITH SCHEMA public;
+
+
+--
+-- Name: EXTENSION pgcrypto; Type: COMMENT; Schema: -; Owner: 
+--
+
+COMMENT ON EXTENSION pgcrypto IS 'cryptographic functions';
+
+
+--
+-- Name: uuid-ossp; Type: EXTENSION; Schema: -; Owner: -
+--
+
+CREATE EXTENSION IF NOT EXISTS "uuid-ossp" WITH SCHEMA public;
+
+
+--
+-- Name: EXTENSION "uuid-ossp"; Type: COMMENT; Schema: -; Owner: 
+--
+
+COMMENT ON EXTENSION "uuid-ossp" IS 'generate universally unique identifiers (UUIDs)';
+
+
+--
+-- Name: user_auth_roles; Type: TYPE; Schema: public; Owner: postgres
+--
+
+CREATE TYPE public.user_auth_roles AS ENUM (
+    'user',
+    'seller',
+    'admin-1',
+    'admin-2',
+    'admin-3'
+);
+
+
+ALTER TYPE public.user_auth_roles OWNER TO postgres;
+
+--
+-- Name: user_methods; Type: TYPE; Schema: public; Owner: postgres
+--
+
+CREATE TYPE public.user_methods AS ENUM (
+    'google',
+    'password'
+);
+
+
+ALTER TYPE public.user_methods OWNER TO postgres;
+
+SET default_tablespace = '';
+
+SET default_table_access_method = heap;
+
+--
+-- Name: categories; Type: TABLE; Schema: public; Owner: postgres
+--
+
+CREATE TABLE public.categories (
+    id uuid DEFAULT public.uuid_generate_v4() NOT NULL,
+    name character varying(100) NOT NULL,
+    link character varying(109) NOT NULL,
+    product_count integer DEFAULT 0 NOT NULL,
+    index integer DEFAULT 0 NOT NULL,
+    created_at timestamp with time zone DEFAULT now() NOT NULL,
+    updated_at timestamp with time zone DEFAULT now() NOT NULL,
+    clicks numeric DEFAULT 0 NOT NULL,
+    CONSTRAINT categories_clicks_check CHECK ((clicks >= (0)::numeric)),
+    CONSTRAINT categories_index_check CHECK ((index >= 0)),
+    CONSTRAINT categories_product_count_check CHECK ((product_count >= 0))
+);
+
+
+ALTER TABLE public.categories OWNER TO postgres;
+
+--
+-- Name: subcategories; Type: TABLE; Schema: public; Owner: postgres
+--
+
+CREATE TABLE public.subcategories (
+    id uuid DEFAULT public.uuid_generate_v4() NOT NULL,
+    category uuid NOT NULL,
+    name character varying(100) NOT NULL,
+    index integer DEFAULT 0 NOT NULL,
+    link character varying(109) NOT NULL,
+    product_count integer DEFAULT 0 NOT NULL,
+    created_at timestamp with time zone DEFAULT now() NOT NULL,
+    updated_at timestamp with time zone DEFAULT now() NOT NULL,
+    clicks numeric DEFAULT 0 NOT NULL,
+    CONSTRAINT subcategories_clicks_check CHECK ((clicks >= (0)::numeric)),
+    CONSTRAINT subcategories_index_check CHECK ((index >= 0)),
+    CONSTRAINT subcategories_product_count_check CHECK ((product_count >= 0))
+);
+
+
+ALTER TABLE public.subcategories OWNER TO postgres;
+
+--
+-- Name: subcategoryitems; Type: TABLE; Schema: public; Owner: postgres
+--
+
+CREATE TABLE public.subcategoryitems (
+    id uuid DEFAULT public.uuid_generate_v4() NOT NULL,
+    subcategory uuid NOT NULL,
+    name character varying(100) NOT NULL,
+    link character varying(109) NOT NULL,
+    product_count integer DEFAULT 0 NOT NULL,
+    index integer DEFAULT 0 NOT NULL,
+    created_at timestamp with time zone DEFAULT now() NOT NULL,
+    updated_at timestamp with time zone DEFAULT now() NOT NULL,
+    clicks numeric DEFAULT 0 NOT NULL,
+    CONSTRAINT subcategoryitems_clicks_check CHECK ((clicks >= (0)::numeric)),
+    CONSTRAINT subcategoryitems_index_check CHECK ((index >= 0)),
+    CONSTRAINT subcategoryitems_product_count_check CHECK ((product_count >= 0))
+);
+
+
+ALTER TABLE public.subcategoryitems OWNER TO postgres;
+
+--
+-- Data for Name: categories; Type: TABLE DATA; Schema: public; Owner: postgres
+--
+
+COPY public.categories (id, name, link, product_count, index, created_at, updated_at, clicks) FROM stdin;
+af2d8908-09a5-4736-b8ed-ef52e9b0ae58	Woman	c-woman	0	0	2024-05-06 01:41:02.43+03	2024-05-06 01:41:02.43+03	0
+c6ab5765-96c6-4dc6-9db8-52823b9d2774	Male	c-male	0	1	2024-05-06 01:41:02.43+03	2024-05-06 01:41:02.43+03	0
+69fa7057-993e-44cd-92f4-25b06bdb357c	Mother & child	c-mother-child	0	2	2024-05-06 01:41:02.43+03	2024-05-06 01:41:02.43+03	0
+f8880e1b-0614-4aa3-abda-82012a5baf6e	Electronic	c-electronic	0	7	2024-05-06 01:41:02.43+03	2024-05-06 01:41:02.43+03	0
+b38fbffb-a4ce-4710-8eb2-3cd3eba2ccb9	Sports Outdoor	c-sports-outdoor	0	8	2024-05-06 01:41:02.43+03	2024-05-06 01:41:02.43+03	0
+953c1572-46bf-4584-aae0-5d1830879766	Home & Living	c-home-living	0	3	2024-05-06 01:41:02.43+03	2024-05-06 01:41:02.43+03	0
+\.
+
+
+--
+-- Data for Name: subcategories; Type: TABLE DATA; Schema: public; Owner: postgres
+--
+
+COPY public.subcategories (id, category, name, index, link, product_count, created_at, updated_at, clicks) FROM stdin;
+4015a5aa-a422-4146-87bd-c0c252d87d2b	f8880e1b-0614-4aa3-abda-82012a5baf6e	Electronic	8	sc-electronic-056508cc	0	2024-05-09 12:57:02.719+03	2024-05-09 12:57:02.719+03	0
+d8213269-6cbe-4fdd-958d-8a325768715c	69fa7057-993e-44cd-92f4-25b06bdb357c	Baby Room	7	sc-baby-room-67a56c55	0	2024-05-14 13:11:56.489+03	2024-05-14 13:11:56.489+03	0
+661c41d4-27f2-47ec-b3a4-d9be12e2f638	c6ab5765-96c6-4dc6-9db8-52823b9d2774	Underwear	6	sc-underwear-4f2211a6	0	2024-05-09 12:55:05.791+03	2024-05-09 12:55:05.791+03	0
+528394a5-f619-4fa0-a4ad-051b02a68b3a	69fa7057-993e-44cd-92f4-25b06bdb357c	Girl Child	1	sc-girl-child-6ac6039c	0	2024-05-14 13:11:56.489+03	2024-05-14 13:11:56.489+03	0
+9cb5d682-5413-4c4a-bd69-ea0999a35be0	953c1572-46bf-4584-aae0-5d1830879766	Home textiles	2	sc-home-textiles-d3a243f8	0	2024-05-14 13:45:46.985+03	2024-05-14 13:45:46.985+03	0
+cbc18286-adfe-4f3f-a305-9e62e2837473	953c1572-46bf-4584-aae0-5d1830879766	Home decoration	3	sc-home-decoration-2db7585b	0	2024-05-14 13:45:46.985+03	2024-05-14 13:45:46.985+03	0
+00047106-3139-4c17-9115-e9785f6484d9	69fa7057-993e-44cd-92f4-25b06bdb357c	Boy	2	sc-boy-74af70cf	0	2024-05-14 13:11:56.489+03	2024-05-14 13:11:56.489+03	0
+f9ddb9ff-41ed-46fd-8234-9b851cc5d0b8	953c1572-46bf-4584-aae0-5d1830879766	Book	8	sc-book-935b8f5e	0	2024-05-14 13:45:46.986+03	2024-05-14 13:45:46.986+03	0
+ebe1d02f-ca41-4941-bc22-da3aa4d391ba	953c1572-46bf-4584-aae0-5d1830879766	Tableware and Kitchen	0	sc-tableware-and-kitchen-61649cb4	0	2024-05-14 13:45:46.985+03	2024-05-14 13:45:46.985+03	0
+dfb84d78-cd11-4521-b25b-b39cfd54e4ef	953c1572-46bf-4584-aae0-5d1830879766	Sports & Outdoor	7	sc-sports-outdoor-022683b9	0	2024-05-14 13:45:46.985+03	2024-05-14 13:45:46.985+03	0
+494e782c-2037-4ccc-a3db-a4fa9ce7866c	953c1572-46bf-4584-aae0-5d1830879766	Furniture	5	sc-furniture-0303eb49	0	2024-05-14 13:45:46.985+03	2024-05-14 13:45:46.985+03	0
+899ad6e5-5202-4067-918e-52db97504692	953c1572-46bf-4584-aae0-5d1830879766	Hobby	6	sc-hobby-48908e90	0	2024-05-14 13:45:46.985+03	2024-05-14 13:45:46.985+03	0
+16a6514b-b088-4d4d-b796-eff3e144f9c9	953c1572-46bf-4584-aae0-5d1830879766	Stationary	9	sc-stationary-17a78224	0	2024-05-14 13:45:46.986+03	2024-05-14 13:45:46.986+03	0
+d03ceb1d-7568-45bb-87c9-dfeebd46a5be	953c1572-46bf-4584-aae0-5d1830879766	Lighting	4	sc-lighting-2f35642d	0	2024-05-14 13:45:46.985+03	2024-05-14 13:45:46.985+03	0
+c14bfcd7-85ee-466f-8a75-6008d8e3e70f	953c1572-46bf-4584-aae0-5d1830879766	Construction market	11	sc-construction-market-db17b409	0	2024-05-14 13:45:46.986+03	2024-05-14 13:45:46.986+03	0
+fef9dc63-cf47-4c17-aca0-0947230c0582	953c1572-46bf-4584-aae0-5d1830879766	Automobile & Motorcycle	10	sc-automobile-motorcycle-14e124e7	0	2024-05-14 13:45:46.986+03	2024-05-14 13:45:46.986+03	0
+73764eab-5432-4068-8dfe-bebcdd03e726	f8880e1b-0614-4aa3-abda-82012a5baf6e	Air Conditioners & Heaters	10	sc-air-conditioners-heaters-dea59d79	0	2024-05-14 14:03:31.302+03	2024-05-14 14:03:31.302+03	0
+a710c4c3-fbe3-45c6-9a7b-c0c3de43317a	af2d8908-09a5-4736-b8ed-ef52e9b0ae58	Underwear	4	sc-underwear-c6cfa09a	0	2024-05-08 13:08:44.835836+03	2024-05-08 13:08:44.835836+03	0
+60849870-ad1d-4f31-aa0a-ff2d8ec9b912	f8880e1b-0614-4aa3-abda-82012a5baf6e	Computer & Tablet	6	sc-computer-tablet-d3bc9125	0	2024-05-14 14:03:31.302+03	2024-05-14 14:03:31.302+03	0
+71cfdae4-3481-4e62-992e-343daa87a243	69fa7057-993e-44cd-92f4-25b06bdb357c	Baby Care	3	sc-baby-care-5adc58a9	0	2024-05-14 13:11:56.489+03	2024-05-14 13:11:56.489+03	0
+6bea99ee-eeaf-426d-b016-6c0d4a3bca8c	c6ab5765-96c6-4dc6-9db8-52823b9d2774	Personal care	2	sc-personal-care-38465da5	0	2024-05-09 12:24:06.123+03	2024-05-09 12:24:06.123+03	0
+f87e1c8c-f655-4a73-b069-88600ad9bc68	af2d8908-09a5-4736-b8ed-ef52e9b0ae58	Luxury	5	sc-luxury-f98d082d	0	2024-05-09 12:13:10.216079+03	2024-05-09 12:13:10.216079+03	0
+dd201912-e822-4e18-a64c-0c1460f7708a	af2d8908-09a5-4736-b8ed-ef52e9b0ae58	Cosmetic	6	sc-cosmetic-038ec63d	0	2024-05-09 12:15:06.830784+03	2024-05-09 12:15:06.830784+03	0
+d688b55e-fdf1-4499-bba0-681240d9fef2	c6ab5765-96c6-4dc6-9db8-52823b9d2774	Shoe	1	sc-shoe-0ee2d258	0	2024-05-09 12:22:57.492+03	2024-05-09 12:22:57.492+03	0
+a0faa5fc-04f8-470c-99a4-25e19bcf6813	af2d8908-09a5-4736-b8ed-ef52e9b0ae58	Bag	3	sc-bag-44ba2bfa	0	2024-05-08 13:04:07.446253+03	2024-05-08 13:04:07.446253+03	0
+dfd8a850-c768-4fcc-b45f-33a7884acd59	69fa7057-993e-44cd-92f4-25b06bdb357c	Transportation and Security	6	sc-transportation-and-security-2d7ea22f	0	2024-05-14 13:11:56.489+03	2024-05-14 13:11:56.489+03	0
+4b1451da-7062-4197-b896-6b769c061caf	c6ab5765-96c6-4dc6-9db8-52823b9d2774	Bag	3	sc-bag-f65cc666	0	2024-05-09 12:26:29.437+03	2024-05-09 12:26:29.437+03	0
+ad272dcd-9924-427b-be6f-4b5148614eb6	69fa7057-993e-44cd-92f4-25b06bdb357c	Toy	4	sc-toy-60779749	0	2024-05-14 13:11:56.489+03	2024-05-14 13:11:56.489+03	0
+d10385f1-e0cf-41f2-b161-2d05ed3df2c9	af2d8908-09a5-4736-b8ed-ef52e9b0ae58	Shoe	1	sc-shoe-db0084e4	0	2024-05-09 15:37:18.415+03	2024-05-09 15:37:18.415+03	0
+cb12cceb-c7c5-44cd-a7a3-8f53a69c09f8	c6ab5765-96c6-4dc6-9db8-52823b9d2774	Watch & Accessory	5	sc-watch-accessory-d77d7fbd	0	2024-05-09 12:29:50.132+03	2024-05-09 12:29:50.132+03	0
+5273e3c9-92b3-4984-b24e-e9ad7d53e2ae	c6ab5765-96c6-4dc6-9db8-52823b9d2774	Big size	4	sc-big-size-563b0cd3	0	2024-05-09 12:27:46.834+03	2024-05-09 12:27:46.834+03	0
+105faab7-dec9-4ede-b356-45d6fe56fce1	c6ab5765-96c6-4dc6-9db8-52823b9d2774	Luxury & Designer	9	sc-luxury-&-designer-3436b8ab	0	2024-05-09 12:59:27.524+03	2024-05-09 12:59:27.524+03	0
+b9c089d0-1c64-4af9-b694-1680c2a8f288	c6ab5765-96c6-4dc6-9db8-52823b9d2774	Sports & Outdoor	7	sc-sports-&-outdoor-335aae49	0	2024-05-09 12:56:07.992+03	2024-05-09 12:56:07.992+03	0
+023938ff-d71e-4632-a26e-e0f8d6e880b9	af2d8908-09a5-4736-b8ed-ef52e9b0ae58	Spor & Outdoor	7	sc-spor-outdoor-217241e7	0	2024-05-09 12:16:45.42341+03	2024-05-09 12:16:45.42341+03	0
+3a2d74ae-208f-49d4-b3e0-b757a4825401	69fa7057-993e-44cd-92f4-25b06bdb357c	Baby	0	sc-baby-fe5ea338	0	2024-05-14 13:11:56.489+03	2024-05-14 13:11:56.489+03	0
+9664d16e-9163-4457-b393-2b675e75f550	af2d8908-09a5-4736-b8ed-ef52e9b0ae58	Accessories & Bags	2	sc-accessories & bags-db891b27	0	2024-05-09 15:38:44.822+03	2024-05-09 15:38:44.822+03	0
+cd3cad39-2095-48f0-a001-9c40512d6bb7	c6ab5765-96c6-4dc6-9db8-52823b9d2774	Clothes	0	sc-clothes-b3ffcbae	0	2024-05-09 12:21:52.74+03	2024-05-09 12:21:52.74+03	0
+783b21a4-72f4-4adb-9e20-2f86f1a410dc	af2d8908-09a5-4736-b8ed-ef52e9b0ae58	Clothes	0	sc-clothes-0f4f0128	0	2024-05-09 15:45:00.893+03	2024-05-09 15:45:00.893+03	0
+279d5b87-88ac-4906-a624-eef7a121852d	b38fbffb-a4ce-4710-8eb2-3cd3eba2ccb9	Home Gym Equipment	3	sc-home-gym-equipment-a1dc4ef4	0	2024-05-14 14:05:20.903+03	2024-05-14 14:05:20.903+03	0
+40058e28-1ad7-4620-ab45-1628f2142019	f8880e1b-0614-4aa3-abda-82012a5baf6e	TV & Picture & Sound	4	sc-tv-picture-sound-f96451ef	0	2024-05-14 14:03:31.302+03	2024-05-14 14:03:31.302+03	0
+99725bc3-d1b6-49f4-b6c7-e6586acd6709	953c1572-46bf-4584-aae0-5d1830879766	Bath	1	sc-bath-0a4a6dd6	0	2024-05-14 13:45:46.985+03	2024-05-14 13:45:46.985+03	0
+0f9163d0-ea12-44c5-8c1b-e8ffde9f7ae0	b38fbffb-a4ce-4710-8eb2-3cd3eba2ccb9	Sneakers	2	sc-sneakers-af3aae80	0	2024-05-14 14:05:20.903+03	2024-05-14 14:05:20.903+03	0
+55349c76-ab69-4c86-b95f-ab266b4a5715	f8880e1b-0614-4aa3-abda-82012a5baf6e	Small Appliances	0	sc-small-appliances-b2df3f75	0	2024-05-14 14:03:31.301+03	2024-05-14 14:03:31.301+03	0
+c6f732d6-d43a-4137-9c14-7e8df0733962	b38fbffb-a4ce-4710-8eb2-3cd3eba2ccb9	Sports equipment	4	sc-sports-equipment-c0c4d5cc	0	2024-05-14 14:05:20.903+03	2024-05-14 14:05:20.903+03	0
+1f5fba9d-513b-459f-942a-b38318e7dbd6	f8880e1b-0614-4aa3-abda-82012a5baf6e	Telephone	2	sc-telephone-a7c771b5	0	2024-05-14 14:03:31.302+03	2024-05-14 14:03:31.302+03	0
+0f77d0aa-b07b-43a3-97f4-4bb520195683	f8880e1b-0614-4aa3-abda-82012a5baf6e	Special for Players	8	sc-special-for-players-0b812623	0	2024-05-14 14:03:31.302+03	2024-05-14 14:03:31.302+03	0
+391ce7d0-48e3-4b5f-82b7-6a3019205949	f8880e1b-0614-4aa3-abda-82012a5baf6e	Photo & Camera	3	sc-photo-camera-7b6b1cad	0	2024-05-14 14:03:31.302+03	2024-05-14 14:03:31.302+03	0
+f231e281-165e-45eb-b203-2861281c2a0e	f8880e1b-0614-4aa3-abda-82012a5baf6e	Electronic Accessories	9	sc-electronic-accessories-9b38608a	0	2024-05-14 14:03:31.302+03	2024-05-14 14:03:31.302+03	0
+cb5eebb4-2ec4-4b22-b87c-645a7ed734e7	f8880e1b-0614-4aa3-abda-82012a5baf6e	Wearable technology	1	sc-wearable-technology-1edfcb0b	0	2024-05-14 14:03:31.302+03	2024-05-14 14:03:31.302+03	0
+a16567ec-c620-47c8-a104-c30a4027aae3	f8880e1b-0614-4aa3-abda-82012a5baf6e	Personal Care Appliances	7	sc-personal-care-appliances-e22075be	0	2024-05-14 14:03:31.302+03	2024-05-14 14:03:31.302+03	0
+a91c1c85-1e5f-47fe-83b4-1c5e7c60d7dc	f8880e1b-0614-4aa3-abda-82012a5baf6e	Household appliances	5	sc-household-appliances-9782be2d	0	2024-05-14 14:03:31.302+03	2024-05-14 14:03:31.302+03	0
+93ad0fa7-1482-4525-a010-11c809b4c197	b38fbffb-a4ce-4710-8eb2-3cd3eba2ccb9	Sports Bottom Wear	1	sc-sports-bottom-wear-6b258bf3	0	2024-05-14 14:05:20.903+03	2024-05-14 14:05:20.903+03	0
+28f71e99-16f8-4899-a6ce-0fa3c0abd5d9	b38fbffb-a4ce-4710-8eb2-3cd3eba2ccb9	Sports Tops	0	sc-sports-tops-8396956f	0	2024-05-14 14:05:20.903+03	2024-05-14 14:05:20.903+03	0
+c831bc11-5d71-411d-beb7-f9e1e8f4172d	b38fbffb-a4ce-4710-8eb2-3cd3eba2ccb9	Sports Nutrition	7	sc-sports-nutrition-95600087	0	2024-05-14 14:05:20.903+03	2024-05-14 14:05:20.903+03	0
+6d661025-10b7-4be9-95aa-792dcc06a17c	b38fbffb-a4ce-4710-8eb2-3cd3eba2ccb9	Bicycle	5	sc-bicycle-97aec34c	0	2024-05-14 14:05:20.903+03	2024-05-14 14:05:20.903+03	0
+04469fa1-cd9f-4a82-b322-58798594a335	b38fbffb-a4ce-4710-8eb2-3cd3eba2ccb9	Fitness Condition	6	sc-fitness-condition-67f1ceb2	0	2024-05-14 14:05:20.903+03	2024-05-14 14:05:20.903+03	0
+f20261a9-a2cd-487b-81eb-4c42d66d2947	b38fbffb-a4ce-4710-8eb2-3cd3eba2ccb9	Ball	8	sc-ball-671a40a7	0	2024-05-14 14:05:20.903+03	2024-05-14 14:05:20.903+03	0
+\.
+
+
+--
+-- Data for Name: subcategoryitems; Type: TABLE DATA; Schema: public; Owner: postgres
+--
+
+COPY public.subcategoryitems (id, subcategory, name, link, product_count, index, created_at, updated_at, clicks) FROM stdin;
+9c4a063a-7462-40fd-b95d-1fd2870f29ed	cd3cad39-2095-48f0-a001-9c40512d6bb7	blazer	sci-blazer-149a4608	0	18	2024-05-09 12:21:52.757+03	2024-05-09 12:21:52.757+03	0
+81ff0433-ef65-4063-a719-188ee9aa7add	cb12cceb-c7c5-44cd-a7a3-8f53a69c09f8	Hat	sci-hat-49413fa5	0	5	2024-05-09 12:29:50.139+03	2024-05-09 12:29:50.139+03	0
+c0db1308-9920-49b6-b639-a598ce4f8e06	5273e3c9-92b3-4984-b24e-e9ad7d53e2ae	Plus Size Pants	sci-plus-size-pants-dca9b979	0	3	2024-05-09 12:27:46.841+03	2024-05-09 12:27:46.841+03	0
+21d27143-0c9e-455f-a10b-bd37011d4453	5273e3c9-92b3-4984-b24e-e9ad7d53e2ae	Plus Size Shirt	sci-plus-size-shirt-2a35a17b	0	2	2024-05-09 12:27:46.841+03	2024-05-09 12:27:46.841+03	0
+0b2d6d13-50c0-4af0-b4f4-4d6c1f70d142	5273e3c9-92b3-4984-b24e-e9ad7d53e2ae	Plus Size T-shirt	sci-plus-size-t-shirt-739760c8	0	1	2024-05-09 12:27:46.841+03	2024-05-09 12:27:46.841+03	0
+da5c5871-9774-44d4-9683-73a9b77525cc	cb12cceb-c7c5-44cd-a7a3-8f53a69c09f8	Collar	sci-collar-7d980ca6	0	9	2024-05-09 12:29:50.139+03	2024-05-09 12:29:50.139+03	0
+cba0d82f-82eb-4807-9a91-43e33aa3675b	5273e3c9-92b3-4984-b24e-e9ad7d53e2ae	Plus Size Coat	sci-plus-size-coat-e1c8692a	0	7	2024-05-09 12:27:46.841+03	2024-05-09 12:27:46.841+03	0
+d974bfcf-174c-4b7c-9073-217112af3bb0	4b1451da-7062-4197-b896-6b769c061caf	Sport bag	sci-sport-bag-135c31b9	0	1	2024-05-09 12:26:29.444+03	2024-05-09 12:26:29.444+03	0
+0b628159-643d-4828-bb51-f820d7330935	d688b55e-fdf1-4499-bba0-681240d9fef2	Home slippers	sci-home-slippers-999e976a	0	10	2024-05-09 12:22:57.499+03	2024-05-09 12:22:57.499+03	0
+b583dbb2-99d8-4419-bfb0-06fe299d767a	cd3cad39-2095-48f0-a001-9c40512d6bb7	Raincoat	sci-raincoat-12b8b181	0	17	2024-05-09 12:21:52.757+03	2024-05-09 12:21:52.757+03	0
+cd008879-ae49-420f-9c8e-6932ac1d407c	d688b55e-fdf1-4499-bba0-681240d9fef2	Snow Boot	sci-snow-boot-debc4820	0	7	2024-05-09 12:22:57.499+03	2024-05-09 12:22:57.499+03	0
+33d520c2-7374-473d-b74f-fa1b954d16df	cd3cad39-2095-48f0-a001-9c40512d6bb7	coat	sci-coat-d882645a	0	9	2024-05-09 12:21:52.757+03	2024-05-09 12:21:52.757+03	0
+e66bbae0-75d1-4760-88cf-7e8405e5fdc6	4b1451da-7062-4197-b896-6b769c061caf	Shoulder bag	sci-shoulder-bag-8fff9399	0	5	2024-05-09 12:26:29.444+03	2024-05-09 12:26:29.444+03	0
+311d7fb1-f5ff-48b8-8813-7d98211037f1	d688b55e-fdf1-4499-bba0-681240d9fef2	Casual Shoes	sci-casual-shoes-12987a94	0	1	2024-05-09 12:22:57.499+03	2024-05-09 12:22:57.499+03	0
+bbca7c16-6f54-4e60-951c-7a81956e7ac0	6bea99ee-eeaf-426d-b016-6c0d4a3bca8c	Razor blade	sci-razor-blade-afc3cf10	0	3	2024-05-09 12:24:06.13+03	2024-05-09 12:24:06.13+03	0
+25538354-c77f-4237-8b2a-55633a244dd9	cd3cad39-2095-48f0-a001-9c40512d6bb7	Trench coat	sci-trench-coat-3d0971d7	0	15	2024-05-09 12:21:52.757+03	2024-05-09 12:21:52.757+03	0
+c165926c-7a31-4879-b365-3e669b6cdb12	cb12cceb-c7c5-44cd-a7a3-8f53a69c09f8	Glove	sci-glove-7e2ac505	0	12	2024-05-09 12:29:50.139+03	2024-05-09 12:29:50.139+03	0
+79944313-4274-48dd-833c-50ec4aaecf20	5273e3c9-92b3-4984-b24e-e9ad7d53e2ae	Plus Size Sweater	sci-plus-size-sweater-31f39232	0	5	2024-05-09 12:27:46.841+03	2024-05-09 12:27:46.841+03	0
+fe123857-7b99-4031-9816-6f00432ab71a	5273e3c9-92b3-4984-b24e-e9ad7d53e2ae	Plus Size Coat	sci-plus-size-coat-6ec7a2c5	0	4	2024-05-09 12:27:46.841+03	2024-05-09 12:27:46.841+03	0
+157665db-3cf7-4bd1-9455-dbb2a3d8b789	ebe1d02f-ca41-4941-bc22-da3aa4d391ba	Fork Spoon Knife Set	sci-fork-spoon-knife-set-e54693a4	0	2	2024-05-14 13:45:47.014+03	2024-05-14 13:45:47.014+03	0
+2ac964c9-8f70-4b2e-ad63-35de424919b8	4b1451da-7062-4197-b896-6b769c061caf	Cloth Bag	sci-cloth-bag-cf91187f	0	6	2024-05-09 12:26:29.444+03	2024-05-09 12:26:29.444+03	0
+7e4870bc-3efa-4624-a4ac-bf98adc37d55	cb12cceb-c7c5-44cd-a7a3-8f53a69c09f8	Purse	sci-purse-8494d991	0	2	2024-05-09 12:29:50.139+03	2024-05-09 12:29:50.139+03	0
+bfdad0f3-9ccc-4582-8aa9-5a0c97110666	6bea99ee-eeaf-426d-b016-6c0d4a3bca8c	Deodorant	sci-deodorant-4a053f36	0	4	2024-05-09 12:24:06.13+03	2024-05-09 12:24:06.13+03	0
+6c42853a-fa5b-4d46-9bf9-9d438e57c419	cb12cceb-c7c5-44cd-a7a3-8f53a69c09f8	Sunglasses	sci-sunglasses-e413f295	0	1	2024-05-09 12:29:50.139+03	2024-05-09 12:29:50.139+03	0
+6a5bdbec-a6c2-4d7d-984b-e31bf3a89e9d	4b1451da-7062-4197-b896-6b769c061caf	Briefcase	sci-briefcase-fa6083a2	0	7	2024-05-09 12:26:29.444+03	2024-05-09 12:26:29.444+03	0
+780fafed-770a-47c0-b810-5c581e4a2f94	4b1451da-7062-4197-b896-6b769c061caf	Laptop Bag	sci-laptop-bag-86ab6b2a	0	2	2024-05-09 12:26:29.444+03	2024-05-09 12:26:29.444+03	0
+c9c41da5-1f56-44b9-94e2-5cb2aabc5693	cd3cad39-2095-48f0-a001-9c40512d6bb7	fleece	sci-fleece-6fbdd2a6	0	19	2024-05-09 12:21:52.757+03	2024-05-09 12:21:52.757+03	0
+e31d7d04-fede-42b7-a407-aeb386d61f0a	783b21a4-72f4-4adb-9e20-2f86f1a410dc	Dress	sci-dress-f990992a	0	0	2024-05-09 15:45:00.934+03	2024-05-09 15:45:00.934+03	0
+ecf802f3-6dc6-433c-9fbc-b3b56788f84f	783b21a4-72f4-4adb-9e20-2f86f1a410dc	T-shirt	sci-t-shirt-a1aca41e	0	1	2024-05-09 15:45:00.934+03	2024-05-09 15:45:00.934+03	0
+f1816797-cf4f-49dd-a6a1-07eeea5f6cff	cd3cad39-2095-48f0-a001-9c40512d6bb7	Cardigan	sci-cardigan-f330a001	0	14	2024-05-09 12:21:52.757+03	2024-05-09 12:21:52.757+03	0
+70f701cc-b081-41d3-b293-3724b8ba11a0	6bea99ee-eeaf-426d-b016-6c0d4a3bca8c	Sexual Health	sci-sexual-health-ba5f6ef8	0	1	2024-05-09 12:24:06.13+03	2024-05-09 12:24:06.13+03	0
+e212e804-00b4-4449-8ed3-da81e238fd73	cd3cad39-2095-48f0-a001-9c40512d6bb7	Coat	sci-coat-6c7397eb	0	13	2024-05-09 12:21:52.757+03	2024-05-09 12:21:52.757+03	0
+c7d5d951-fed1-404b-aef9-e1aa59ac867c	cd3cad39-2095-48f0-a001-9c40512d6bb7	Suit	sci-suit-80e3591a	0	10	2024-05-09 12:21:52.757+03	2024-05-09 12:21:52.757+03	0
+9c427d67-e890-4a19-b80b-2bd71b5b5b4a	cd3cad39-2095-48f0-a001-9c40512d6bb7	Jacket	sci-jacket-790bb427	0	5	2024-05-09 12:21:52.757+03	2024-05-09 12:21:52.757+03	0
+d1d11e32-7d13-473e-81e8-f0947c8befbf	cd3cad39-2095-48f0-a001-9c40512d6bb7	Jeans	sci-jeans-5fe71fa6	0	6	2024-05-09 12:21:52.757+03	2024-05-09 12:21:52.757+03	0
+780ab0e5-7404-4c71-b900-bdebd2385771	cd3cad39-2095-48f0-a001-9c40512d6bb7	Trousers	sci-trousers-6554568e	0	4	2024-05-09 12:21:52.757+03	2024-05-09 12:21:52.757+03	0
+87c9c092-30ee-420d-b90f-d95d6a84ce45	cd3cad39-2095-48f0-a001-9c40512d6bb7	Shorts	sci-shorts-f17003ef	0	1	2024-05-09 12:21:52.757+03	2024-05-09 12:21:52.757+03	0
+466dade9-70bf-4383-97d8-f10f4b50b9db	cd3cad39-2095-48f0-a001-9c40512d6bb7	Waistcoat	sci-waistcoat-13dba696	0	7	2024-05-09 12:21:52.757+03	2024-05-09 12:21:52.757+03	0
+bea1b2f3-8e65-4cde-8970-990cd7f806c2	cd3cad39-2095-48f0-a001-9c40512d6bb7	Sweatshirt	sci-sweatshirt-a4e01ef2	0	11	2024-05-09 12:21:52.757+03	2024-05-09 12:21:52.757+03	0
+580c4f11-d2e9-4517-a0de-2b866ee4c0fd	4b1451da-7062-4197-b896-6b769c061caf	Messenger Bag	sci-messenger-bag-3dce58cc	0	4	2024-05-09 12:26:29.444+03	2024-05-09 12:26:29.444+03	0
+b7524008-dd09-46ce-84e3-ca219e069074	cd3cad39-2095-48f0-a001-9c40512d6bb7	Jumper	sci-jumper-5ef15762	0	8	2024-05-09 12:21:52.757+03	2024-05-09 12:21:52.757+03	0
+ddce1274-ba6b-4a01-afb2-d793555a8219	d688b55e-fdf1-4499-bba0-681240d9fef2	Boot	sci-boot-6742532a	0	12	2024-05-09 12:22:57.499+03	2024-05-09 12:22:57.499+03	0
+c697bada-a838-45fe-87bf-4490407f580f	cd3cad39-2095-48f0-a001-9c40512d6bb7	T-shirt	sci-t-shirt-3c4397cf	0	0	2024-05-09 12:21:52.757+03	2024-05-09 12:21:52.757+03	0
+ffabe14b-9f8a-4f01-9808-f4bf5f32d9bb	cb12cceb-c7c5-44cd-a7a3-8f53a69c09f8	Belt	sci-belt-6f9c0ae8	0	3	2024-05-09 12:29:50.139+03	2024-05-09 12:29:50.139+03	0
+abee8bc6-8a71-4fdc-99c2-756f06a75e17	d688b55e-fdf1-4499-bba0-681240d9fef2	sneakers	sci-sneakers-5b28ebff	0	4	2024-05-09 12:22:57.499+03	2024-05-09 12:22:57.499+03	0
+6bd78d43-51da-4d19-8ed3-67bb0b834fe5	783b21a4-72f4-4adb-9e20-2f86f1a410dc	Shirt	sci-shirt-dae5a1e0	0	2	2024-05-09 15:45:00.934+03	2024-05-09 15:45:00.934+03	0
+9e9af539-2a51-4e8a-baf3-2e62c893b811	d688b55e-fdf1-4499-bba0-681240d9fef2	loafer	sci-loafer-a8f94c02	0	9	2024-05-09 12:22:57.499+03	2024-05-09 12:22:57.499+03	0
+d60d6a0a-6a00-4d07-a4aa-ccf60f500eb3	cd3cad39-2095-48f0-a001-9c40512d6bb7	Coat	sci-coat-9bb4f66c	0	16	2024-05-09 12:21:52.757+03	2024-05-09 12:21:52.757+03	0
+97a93601-3849-4d59-b55a-a587a8837dfc	783b21a4-72f4-4adb-9e20-2f86f1a410dc	Jeans	sci-jeans-bb78a105	0	3	2024-05-09 15:45:00.934+03	2024-05-09 15:45:00.934+03	0
+99642314-35a0-42a8-bbda-e597a6f8604c	cb12cceb-c7c5-44cd-a7a3-8f53a69c09f8	Hour	sci-hour-112d39b8	0	0	2024-05-09 12:29:50.139+03	2024-05-09 12:29:50.139+03	0
+97ab2c1e-f0a7-4bcd-9ed3-626916a87a6c	ebe1d02f-ca41-4941-bc22-da3aa4d391ba	Spice Set	sci-spice-set-94693b17	0	3	2024-05-14 13:45:47.014+03	2024-05-14 13:45:47.014+03	0
+1f8af78d-d615-4dd8-bfaa-58a433d044f0	ebe1d02f-ca41-4941-bc22-da3aa4d391ba	Glass	sci-glass-1168d492	0	4	2024-05-14 13:45:47.014+03	2024-05-14 13:45:47.014+03	0
+f2ea5d57-7cfb-4058-9d9f-c3112d558482	cd3cad39-2095-48f0-a001-9c40512d6bb7	Leather coat	sci-leather-coat-c3f256aa	0	12	2024-05-09 12:21:52.757+03	2024-05-09 12:21:52.757+03	0
+36a19f3f-d20b-495a-8fb9-85176382f550	ebe1d02f-ca41-4941-bc22-da3aa4d391ba	Tableware and Kitchen	sci-tableware-and-kitchen-a3def1ec	0	0	2024-05-14 13:45:47.014+03	2024-05-14 13:45:47.014+03	0
+75e4abe8-4147-4035-90bc-2523359e0d80	4b1451da-7062-4197-b896-6b769c061caf	Purse	sci-purse-7cad257d	0	8	2024-05-09 12:26:29.444+03	2024-05-09 12:26:29.444+03	0
+29e448cd-02a1-45b5-b2cd-cbc33ea7fc39	4b1451da-7062-4197-b896-6b769c061caf	Backpack	sci-backpack-30bf5310	0	0	2024-05-09 12:26:29.444+03	2024-05-09 12:26:29.444+03	0
+0aaacdd7-c481-4da5-8a74-11792c43a895	6bea99ee-eeaf-426d-b016-6c0d4a3bca8c	After Shave Products	sci-after-shave-products-7b7ec19d	0	2	2024-05-09 12:24:06.13+03	2024-05-09 12:24:06.13+03	0
+5fff6e4c-e40f-4679-a934-da8b66d0135b	cb12cceb-c7c5-44cd-a7a3-8f53a69c09f8	Suitcase	sci-suitcase-12f043ad	0	7	2024-05-09 12:29:50.139+03	2024-05-09 12:29:50.139+03	0
+24fbc5ae-4f79-4361-b4e6-fcf83496a73b	5273e3c9-92b3-4984-b24e-e9ad7d53e2ae	Plus Size Sweatpants	sci-plus-size-sweatpants-82c22dd5	0	8	2024-05-09 12:27:46.841+03	2024-05-09 12:27:46.841+03	0
+d4bd3207-b38f-451d-a08d-774a754e25eb	cb12cceb-c7c5-44cd-a7a3-8f53a69c09f8	Tie	sci-tie-7774283a	0	8	2024-05-09 12:29:50.139+03	2024-05-09 12:29:50.139+03	0
+9527dfb4-7303-49c9-86e2-e0f34faa2e55	cb12cceb-c7c5-44cd-a7a3-8f53a69c09f8	Scarf	sci-scarf-5ae13928	0	10	2024-05-09 12:29:50.139+03	2024-05-09 12:29:50.139+03	0
+d577f5fc-3d52-4c6c-a980-d7cd8e62f3f7	d688b55e-fdf1-4499-bba0-681240d9fef2	Boots	sci-boots-296ff59b	0	6	2024-05-09 12:22:57.499+03	2024-05-09 12:22:57.499+03	0
+222ad3c5-56a5-4ac9-b18c-9fb3669f07fb	cb12cceb-c7c5-44cd-a7a3-8f53a69c09f8	Beret	sci-beret-1200da84	0	11	2024-05-09 12:29:50.139+03	2024-05-09 12:29:50.139+03	0
+4c152df5-0495-4918-ac13-cf02f29888e5	783b21a4-72f4-4adb-9e20-2f86f1a410dc	Trousers	sci-trousers-a165526e	0	5	2024-05-09 15:45:00.934+03	2024-05-09 15:45:00.934+03	0
+c6f964e3-f216-4516-97d9-2db447a8fd71	783b21a4-72f4-4adb-9e20-2f86f1a410dc	coat	sci-coat-76d7c83a	0	6	2024-05-09 15:45:00.934+03	2024-05-09 15:45:00.934+03	0
+4fb8c09d-8af9-4356-964f-be2fc4d956dd	783b21a4-72f4-4adb-9e20-2f86f1a410dc	Blouse	sci-blouse-f7c6feb7	0	7	2024-05-09 15:45:00.934+03	2024-05-09 15:45:00.934+03	0
+0518bce6-dca4-445c-a4b3-370c5f6e7fcf	783b21a4-72f4-4adb-9e20-2f86f1a410dc	Jumper	sci-jumper-d8b695c5	0	10	2024-05-09 15:45:00.934+03	2024-05-09 15:45:00.934+03	0
+6285fe64-581d-40d5-b77a-9db49d272671	783b21a4-72f4-4adb-9e20-2f86f1a410dc	Skirt	sci-skirt-0c62f7e3	0	9	2024-05-09 15:45:00.934+03	2024-05-09 15:45:00.934+03	0
+633e12fa-7be8-4a30-9537-ab47dae79460	783b21a4-72f4-4adb-9e20-2f86f1a410dc	hijab	sci-hijab-33f6c58d	0	11	2024-05-09 15:45:00.934+03	2024-05-09 15:45:00.934+03	0
+0c11cb00-94da-48e7-9736-3f76ac486e43	783b21a4-72f4-4adb-9e20-2f86f1a410dc	Big size	sci-big-size-70c3fec9	0	12	2024-05-09 15:45:00.934+03	2024-05-09 15:45:00.934+03	0
+17864e4e-d0d2-4ae0-b52e-aac222a4bc3a	783b21a4-72f4-4adb-9e20-2f86f1a410dc	Trench coat	sci-trench-coat-364436c7	0	13	2024-05-09 15:45:00.934+03	2024-05-09 15:45:00.934+03	0
+97cabe3f-aace-4065-ab97-702dc35db3d9	783b21a4-72f4-4adb-9e20-2f86f1a410dc	Sweatshirt	sci-sweatshirt-d08c7f12	0	15	2024-05-09 15:45:00.934+03	2024-05-09 15:45:00.934+03	0
+47c0b2f3-8f04-491c-bec9-9c710521dd99	b9c089d0-1c64-4af9-b694-1680c2a8f288	Outdoor Boots	sci-outdoor-boots-d81ddf69	0	8	2024-05-09 12:56:08+03	2024-05-09 12:56:08+03	0
+e0f5b45c-a56d-418c-97df-3baa2889c76b	b9c089d0-1c64-4af9-b694-1680c2a8f288	Diving Equipment	sci-diving-equipment-0c6dc824	0	16	2024-05-09 12:56:08+03	2024-05-09 12:56:08+03	0
+d37225d8-1991-4410-b2ff-02c97a62aa48	4015a5aa-a422-4146-87bd-c0c252d87d2b	Smart watch	sci-smart-watch-085e8f87	0	2	2024-05-09 12:57:02.726+03	2024-05-09 12:57:02.726+03	0
+aa11b2cf-5682-4f11-aa39-289ac0911d76	b9c089d0-1c64-4af9-b694-1680c2a8f288	Camping tools	sci-camping-tools-7c85030b	0	19	2024-05-09 12:56:08+03	2024-05-09 12:56:08+03	0
+682f869c-af26-4812-a79d-73c5780ccf2d	4015a5aa-a422-4146-87bd-c0c252d87d2b	Electric bike	sci-electric-bike-b1e15716	0	6	2024-05-09 12:57:02.726+03	2024-05-09 12:57:02.726+03	0
+dfda8cb9-7545-4170-97eb-439f349905b8	b9c089d0-1c64-4af9-b694-1680c2a8f288	Sports Equipment	sci-sports-equipment-1a0d4b8b	0	9	2024-05-09 12:56:08+03	2024-05-09 12:56:08+03	0
+d206b730-3d48-4a41-aa47-40e692a8c9d5	4015a5aa-a422-4146-87bd-c0c252d87d2b	Shaving Machine	sci-shaving-machine-f6bd5053	0	0	2024-05-09 12:57:02.726+03	2024-05-09 12:57:02.726+03	0
+818946d4-5a93-4fd8-b4dd-9040e336aebc	4015a5aa-a422-4146-87bd-c0c252d87d2b	Playstation 5	sci-playstation-5-44780409	0	8	2024-05-09 12:57:02.726+03	2024-05-09 12:57:02.726+03	0
+917dbc88-b746-41c5-8bee-9733075dae47	4015a5aa-a422-4146-87bd-c0c252d87d2b	Bluetooth headphone	sci-bluetooth-headphone-0dc7d32b	0	10	2024-05-09 12:57:02.726+03	2024-05-09 12:57:02.726+03	0
+d096507b-aab4-41dd-9e6e-63dac57a2c7d	b9c089d0-1c64-4af9-b694-1680c2a8f288	Athlete Accessories	sci-athlete-accessories-b086f5cd	0	12	2024-05-09 12:56:08+03	2024-05-09 12:56:08+03	0
+543ac1a5-0333-4cc2-b4d1-8e0fd595f8b4	4015a5aa-a422-4146-87bd-c0c252d87d2b	Gaming PC	sci-gaming-pc-2add50e4	0	11	2024-05-09 12:57:02.726+03	2024-05-09 12:57:02.726+03	0
+6c4f9b93-d925-4e12-b42c-c4721db97fcd	4015a5aa-a422-4146-87bd-c0c252d87d2b	E-pin and Wallet Code	sci-e-pin-and-wallet-code-629ac66f	0	7	2024-05-09 12:57:02.726+03	2024-05-09 12:57:02.726+03	0
+648b4f8a-d6fd-4674-ac54-c3c16f32e162	4015a5aa-a422-4146-87bd-c0c252d87d2b	Gift Cards	sci-gift-cards-0d99683f	0	9	2024-05-09 12:57:02.726+03	2024-05-09 12:57:02.726+03	0
+d734c584-ddf8-4232-8012-cd7ec02354a2	4015a5aa-a422-4146-87bd-c0c252d87d2b	Mobile phone	sci-mobile-phone-2048a58c	0	1	2024-05-09 12:57:02.726+03	2024-05-09 12:57:02.726+03	0
+aff717d1-bb67-41b2-b875-beb70e40fc0c	105faab7-dec9-4ede-b356-45d6fe56fce1	Luxury Bag	sci-luxury-bag-392b33bf	0	2	2024-05-09 12:59:27.531+03	2024-05-09 12:59:27.531+03	0
+56f1c63c-3555-4a04-bf62-6c73ebceb4ac	4015a5aa-a422-4146-87bd-c0c252d87d2b	Xbox Series X	sci-xbox-series-x-a7b3df73	0	13	2024-05-09 12:57:02.726+03	2024-05-09 12:57:02.726+03	0
+697f9e96-9756-45de-a1b0-cd1ca486b5fe	4015a5aa-a422-4146-87bd-c0c252d87d2b	Smart wristband	sci-smart-wristband-5971d13f	0	3	2024-05-09 12:57:02.726+03	2024-05-09 12:57:02.726+03	0
+bf7d25fd-6cb7-458c-ab5b-58b466242b28	105faab7-dec9-4ede-b356-45d6fe56fce1	Luxury Shoes	sci-luxury-shoes-9fc88a39	0	1	2024-05-09 12:59:27.531+03	2024-05-09 12:59:27.531+03	0
+74b171f7-dfd2-4e5a-bdc7-dab2a6911037	4015a5aa-a422-4146-87bd-c0c252d87d2b	Gaming Chair	sci-gaming-chair-b75c6802	0	12	2024-05-09 12:57:02.726+03	2024-05-09 12:57:02.726+03	0
+27cfd428-385b-4576-9663-82c00a876325	105faab7-dec9-4ede-b356-45d6fe56fce1	Luxury Clothing	sci-luxury-clothing-5d82d971	0	0	2024-05-09 12:59:27.531+03	2024-05-09 12:59:27.531+03	0
+61d53ed8-7d27-4ef4-a987-cb73528807e3	b9c089d0-1c64-4af9-b694-1680c2a8f288	Sneakers	sci-sneakers-f73ce303	0	1	2024-05-09 12:56:08+03	2024-05-09 12:56:08+03	0
+e2d2f929-7a79-4a10-8d31-a097aba5d8a1	d688b55e-fdf1-4499-bba0-681240d9fef2	Spikes	sci-spikes-7d599e0d	0	3	2024-05-09 12:22:57.499+03	2024-05-09 12:22:57.499+03	0
+bf434aea-df5a-422a-973f-f505ecf4a3d5	d688b55e-fdf1-4499-bba0-681240d9fef2	Walking shoe	sci-walking-shoe-daf290a9	0	2	2024-05-09 12:22:57.499+03	2024-05-09 12:22:57.499+03	0
+e9b86d33-9077-480b-ad71-b90e19098e41	d688b55e-fdf1-4499-bba0-681240d9fef2	Leather shoes	sci-leather-shoes-e01e996b	0	8	2024-05-09 12:22:57.499+03	2024-05-09 12:22:57.499+03	0
+3ba9b776-71db-4139-917a-967f7fe6e6a0	661c41d4-27f2-47ec-b3a4-d9be12e2f638	boxers	sci-boxers-2ea4ccbd	0	0	2024-05-09 12:55:05.798+03	2024-05-09 12:55:05.798+03	0
+100eb541-2eb2-44e4-b0ad-a57ffd3a5fb3	d688b55e-fdf1-4499-bba0-681240d9fef2	Classical	sci-classical-da856fd9	0	5	2024-05-09 12:22:57.499+03	2024-05-09 12:22:57.499+03	0
+003106dc-9af2-4e0b-a759-9c25e08269b2	661c41d4-27f2-47ec-b3a4-d9be12e2f638	Pyjamas	sci-pyjamas-6f9fb815	0	2	2024-05-09 12:55:05.798+03	2024-05-09 12:55:05.798+03	0
+627ad680-e982-441d-b009-3fa7448be828	5273e3c9-92b3-4984-b24e-e9ad7d53e2ae	Plus Size Cardigan	sci-plus-size-cardigan-e8b89e18	0	6	2024-05-09 12:27:46.841+03	2024-05-09 12:27:46.841+03	0
+30d997d0-7447-4e44-a00f-f2ed21f40b0b	661c41d4-27f2-47ec-b3a4-d9be12e2f638	Athlete	sci-athlete-8a2dde10	0	3	2024-05-09 12:55:05.798+03	2024-05-09 12:55:05.798+03	0
+5e1bb15d-8722-48d7-8339-cbb0a3abc21f	b9c089d0-1c64-4af9-b694-1680c2a8f288	Sweatshirt	sci-sweatshirt-dcfadd84	0	3	2024-05-09 12:56:08+03	2024-05-09 12:56:08+03	0
+fa10a27f-ed13-41df-81b1-99a4deba585b	b9c089d0-1c64-4af9-b694-1680c2a8f288	Tracksuit	sci-tracksuit-ba2239ec	0	0	2024-05-09 12:56:08+03	2024-05-09 12:56:08+03	0
+7c42a1c2-06df-414e-9608-6688528c40f0	661c41d4-27f2-47ec-b3a4-d9be12e2f638	Sock	sci-sock-62c16d4e	0	1	2024-05-09 12:55:05.798+03	2024-05-09 12:55:05.798+03	0
+9f23d576-28fa-427e-985a-75c072ee62c9	b9c089d0-1c64-4af9-b694-1680c2a8f288	Sportswear	sci-sportswear-7a0ab13a	0	6	2024-05-09 12:56:08+03	2024-05-09 12:56:08+03	0
+67f00c9a-26a6-45b6-8a22-893a162558f9	4015a5aa-a422-4146-87bd-c0c252d87d2b	laptop	sci-laptop-2745a866	0	4	2024-05-09 12:57:02.726+03	2024-05-09 12:57:02.726+03	0
+db2d7f20-cd4c-4703-b3c0-5454884ccd5f	b9c089d0-1c64-4af9-b694-1680c2a8f288	Sports Socks	sci-sports-socks-4f016f97	0	5	2024-05-09 12:56:08+03	2024-05-09 12:56:08+03	0
+f945de28-faab-43df-b80d-4e3814262dd0	4b1451da-7062-4197-b896-6b769c061caf	Suitcase & Luggage	sci-suitcase-luggage-7261688a	0	3	2024-05-09 12:26:29.444+03	2024-05-09 12:26:29.444+03	0
+e5776352-e767-4bda-88ee-1882771c8761	4015a5aa-a422-4146-87bd-c0c252d87d2b	drone	sci-drone-98d6226c	0	14	2024-05-09 12:57:02.726+03	2024-05-09 12:57:02.726+03	0
+ff0db22d-de73-46a2-905b-b3078ad3aaf2	b9c089d0-1c64-4af9-b694-1680c2a8f288	Sports Nutrition	sci-sports-nutrition-512d8973	0	11	2024-05-09 12:56:08+03	2024-05-09 12:56:08+03	0
+eaa0a0f8-08b6-472e-bcfb-f92d7b24b719	b9c089d0-1c64-4af9-b694-1680c2a8f288	Uniform	sci-uniform-2560c473	0	4	2024-05-09 12:56:08+03	2024-05-09 12:56:08+03	0
+ab19e984-eb36-49b4-b010-c002a098fd45	b9c089d0-1c64-4af9-b694-1680c2a8f288	scooter	sci-scooter-08274a73	0	14	2024-05-09 12:56:08+03	2024-05-09 12:56:08+03	0
+d9a1190a-a85f-47a4-a116-4f07fc5dc27a	b9c089d0-1c64-4af9-b694-1680c2a8f288	Apron	sci-apron-b14b9275	0	17	2024-05-09 12:56:08+03	2024-05-09 12:56:08+03	0
+0af4adc1-99df-4768-a5e9-65e8f926e6b0	b9c089d0-1c64-4af9-b694-1680c2a8f288	Bicycle	sci-bicycle-ac6e9fc6	0	15	2024-05-09 12:56:08+03	2024-05-09 12:56:08+03	0
+b29a9997-0156-4b49-a616-25a6076286b8	6bea99ee-eeaf-426d-b016-6c0d4a3bca8c	Perfume	sci-perfume-b88155c5	0	0	2024-05-09 12:24:06.13+03	2024-05-09 12:24:06.13+03	0
+ec8ea12b-86a7-4856-a151-337e8ed103b9	b9c089d0-1c64-4af9-b694-1680c2a8f288	sneakers	sci-sneakers-59108d66	0	13	2024-05-09 12:56:08+03	2024-05-09 12:56:08+03	0
+36c1ebdf-451b-4f15-80d5-3e240b741b57	783b21a4-72f4-4adb-9e20-2f86f1a410dc	Raincoat & Windbreaker	sci-raincoat-windbreaker-dc953c30	0	14	2024-05-09 15:45:00.934+03	2024-05-09 15:45:00.934+03	0
+a61820e0-e939-410b-adce-deb9f7fceb98	783b21a4-72f4-4adb-9e20-2f86f1a410dc	Cardigan	sci-cardigan-5ac1f793	0	17	2024-05-09 15:45:00.934+03	2024-05-09 15:45:00.934+03	0
+0befd080-26b7-476d-a249-cf4c16435209	783b21a4-72f4-4adb-9e20-2f86f1a410dc	Coat	sci-coat-8d7ba6aa	0	18	2024-05-09 15:45:00.934+03	2024-05-09 15:45:00.934+03	0
+4bb92205-b709-47da-84fc-c3fe15c35d8a	b9c089d0-1c64-4af9-b694-1680c2a8f288	Outdoor Equipment	sci-outdoor-equipment-cc22b31e	0	10	2024-05-09 12:56:08+03	2024-05-09 12:56:08+03	0
+4da89986-5c0e-45cb-b8cc-2118970e65dd	b9c089d0-1c64-4af9-b694-1680c2a8f288	Action Camera	sci-action-camera-a6120c9e	0	18	2024-05-09 12:56:08+03	2024-05-09 12:56:08+03	0
+078beaf0-4c5f-4157-9b8d-f7bd62efd66d	ebe1d02f-ca41-4941-bc22-da3aa4d391ba	Kettle	sci-kettle-ec75b4b3	0	6	2024-05-14 13:45:47.014+03	2024-05-14 13:45:47.014+03	0
+10b6903c-8b73-4826-9d45-c640fc3bb021	ebe1d02f-ca41-4941-bc22-da3aa4d391ba	Cookware Set	sci-cookware-set-90daac2a	0	7	2024-05-14 13:45:47.014+03	2024-05-14 13:45:47.014+03	0
+b3b8380e-23c9-4d3f-af82-46f1df50fc4f	ebe1d02f-ca41-4941-bc22-da3aa4d391ba	Glass	sci-glass-8a98b028	0	8	2024-05-14 13:45:47.014+03	2024-05-14 13:45:47.014+03	0
+cee594c3-ff00-41b8-bd41-0837dda350c4	ebe1d02f-ca41-4941-bc22-da3aa4d391ba	A dinner plate	sci-a-dinner-plate-ea1d6754	0	10	2024-05-14 13:45:47.015+03	2024-05-14 13:45:47.015+03	0
+0ede69ac-29dc-43d9-8e75-5c5e38805b37	a0faa5fc-04f8-470c-99a4-25e19bcf6813	The school bag	sci-the-school-bag-4275dfc7	0	2	2024-05-09 15:49:47.65+03	2024-05-09 15:49:47.65+03	0
+48db8f68-1845-4fd3-b462-e715952551f9	a0faa5fc-04f8-470c-99a4-25e19bcf6813	Laptop Bag	sci-laptop-bag-89b15ec3	0	3	2024-05-09 15:49:47.65+03	2024-05-09 15:49:47.65+03	0
+7e8c8fc7-57e7-459f-b914-4cf6e5407ff1	a0faa5fc-04f8-470c-99a4-25e19bcf6813	Makeup Bag	sci-makeup-bag-9673f91a	0	8	2024-05-09 15:49:47.65+03	2024-05-09 15:49:47.65+03	0
+dd27c332-6731-4975-9f74-c93307621657	d10385f1-e0cf-41f2-b161-2d05ed3df2c9	Heeled shoes	sci-heeled-shoes-5e5d8d0e	0	0	2024-05-09 15:37:18.423+03	2024-05-09 15:37:18.423+03	0
+196cb191-213c-4887-94b7-91ed367b8839	d10385f1-e0cf-41f2-b161-2d05ed3df2c9	Casual Shoes	sci-casual-shoes-1692f58f	0	2	2024-05-09 15:37:18.423+03	2024-05-09 15:37:18.423+03	0
+59ae707a-b1ad-4221-88bb-fa71347faf8f	d10385f1-e0cf-41f2-b161-2d05ed3df2c9	sneakers	sci-sneakers-81114f5a	0	1	2024-05-09 15:37:18.423+03	2024-05-09 15:37:18.423+03	0
+05e87549-b55f-49dc-a245-8f8eec976c82	d10385f1-e0cf-41f2-b161-2d05ed3df2c9	ballet flats	sci-ballet-flats-3168e918	0	3	2024-05-09 15:37:18.423+03	2024-05-09 15:37:18.423+03	0
+74112a85-ad42-4714-b2f8-5bee25058822	d10385f1-e0cf-41f2-b161-2d05ed3df2c9	Sandals	sci-sandals-39096535	0	4	2024-05-09 15:37:18.423+03	2024-05-09 15:37:18.423+03	0
+ec78a650-f775-4630-8f5d-094a40f4f5a8	d10385f1-e0cf-41f2-b161-2d05ed3df2c9	Boot	sci-boot-52f7fe8c	0	6	2024-05-09 15:37:18.423+03	2024-05-09 15:37:18.423+03	0
+cc8a1254-4681-4868-965e-176c8e151b8e	d10385f1-e0cf-41f2-b161-2d05ed3df2c9	Boots	sci-boots-a130b1ad	0	5	2024-05-09 15:37:18.423+03	2024-05-09 15:37:18.423+03	0
+158a312c-41bc-41bb-ab90-78e764743b21	d10385f1-e0cf-41f2-b161-2d05ed3df2c9	loafer	sci-loafer-12413048	0	8	2024-05-09 15:37:18.423+03	2024-05-09 15:37:18.423+03	0
+7470d8d6-e58e-45c4-81b7-4383b04b18e3	d10385f1-e0cf-41f2-b161-2d05ed3df2c9	Snow Boot	sci-snow-boot-b7ea8bc5	0	7	2024-05-09 15:37:18.423+03	2024-05-09 15:37:18.423+03	0
+649f795c-aa93-4502-8e10-74d4144994d8	a0faa5fc-04f8-470c-99a4-25e19bcf6813	Crossbody Bag	sci-crossbody-bag-e5ac5ebf	0	10	2024-05-09 15:49:47.65+03	2024-05-09 15:49:47.65+03	0
+699d5664-89ee-4d10-9858-a5fe6a87c95e	a0faa5fc-04f8-470c-99a4-25e19bcf6813	Cloth Bag	sci-cloth-bag-41fd24f2	0	11	2024-05-09 15:49:47.65+03	2024-05-09 15:49:47.65+03	0
+b833a956-a3dc-44a0-82ef-678dfe715297	a0faa5fc-04f8-470c-99a4-25e19bcf6813	Mother Baby Bag	sci-mother-baby-bag-dbfb64cc	0	12	2024-05-09 15:49:47.65+03	2024-05-09 15:49:47.65+03	0
+3fd9c9f7-023f-4a02-aa8d-9d84ea391986	a0faa5fc-04f8-470c-99a4-25e19bcf6813	Briefcase	sci-briefcase-101eb925	0	13	2024-05-09 15:49:47.65+03	2024-05-09 15:49:47.65+03	0
+92edc785-c244-4044-931f-4cd833049906	a0faa5fc-04f8-470c-99a4-25e19bcf6813	Lunch box	sci-lunch-box-0d60397d	0	15	2024-05-09 15:49:47.65+03	2024-05-09 15:49:47.65+03	0
+5becb735-5ed8-4465-a451-f30f093a0466	a0faa5fc-04f8-470c-99a4-25e19bcf6813	Tote Bag	sci-tote-bag-03d2ee87	0	14	2024-05-09 15:49:47.65+03	2024-05-09 15:49:47.65+03	0
+fe12f07d-63ba-48ca-88c2-2deb952c47c0	a0faa5fc-04f8-470c-99a4-25e19bcf6813	card holder	sci-card-holder-412fceca	0	16	2024-05-09 15:49:47.65+03	2024-05-09 15:49:47.65+03	0
+7209ad89-7432-487e-af22-924add3e77b6	a0faa5fc-04f8-470c-99a4-25e19bcf6813	Purse	sci-purse-84c7d7a9	0	17	2024-05-09 15:49:47.65+03	2024-05-09 15:49:47.65+03	0
+44566769-561b-4ca4-9d2b-08a052dfe3e0	9664d16e-9163-4457-b393-2b675e75f550	Hour	sci-hour-78f034d4	0	1	2024-05-09 15:38:44.83+03	2024-05-09 15:38:44.83+03	0
+1ffe4efe-7d76-442c-ac3d-a401489e7284	9664d16e-9163-4457-b393-2b675e75f550	Bag	sci-bag-f20c1fd2	0	0	2024-05-09 15:38:44.83+03	2024-05-09 15:38:44.83+03	0
+03578eec-fde9-4e02-86f8-1976a7a557b3	9664d16e-9163-4457-b393-2b675e75f550	Gift of jewelry	sci-gift-of-jewelry-271b2af7	0	2	2024-05-09 15:38:44.83+03	2024-05-09 15:38:44.83+03	0
+4fad3b0a-b44e-4dd2-a92b-c520224f7c82	9664d16e-9163-4457-b393-2b675e75f550	Purse	sci-purse-87505ff7	0	3	2024-05-09 15:38:44.83+03	2024-05-09 15:38:44.83+03	0
+184b501c-2c19-4bbe-9550-efa3150017ec	9664d16e-9163-4457-b393-2b675e75f550	Scarf	sci-scarf-17651028	0	4	2024-05-09 15:38:44.83+03	2024-05-09 15:38:44.83+03	0
+92c4a9d4-85de-450a-852a-0f93396c23fb	9664d16e-9163-4457-b393-2b675e75f550	Beret	sci-beret-5e04209f	0	5	2024-05-09 15:38:44.83+03	2024-05-09 15:38:44.83+03	0
+19b90fb6-59f5-4131-b455-b8b16d8d65f3	9664d16e-9163-4457-b393-2b675e75f550	Glove	sci-glove-b99483b2	0	6	2024-05-09 15:38:44.83+03	2024-05-09 15:38:44.83+03	0
+ebc91036-69fe-48f8-a12a-a0e06d7ff27b	9664d16e-9163-4457-b393-2b675e75f550	Shawl	sci-shawl-851141f8	0	8	2024-05-09 15:38:44.83+03	2024-05-09 15:38:44.83+03	0
+2e70b57e-8440-406e-a53e-750358db186e	9664d16e-9163-4457-b393-2b675e75f550	Belt	sci-belt-74c559d9	0	7	2024-05-09 15:38:44.83+03	2024-05-09 15:38:44.83+03	0
+69717b62-ecef-406c-aa2b-4f37a83f1c40	a710c4c3-fbe3-45c6-9a7b-c0c3de43317a	Nighty	sci-nighty-c7a329b2	0	0	2024-05-09 15:51:03.4+03	2024-05-09 15:51:03.4+03	0
+0e3fdc3e-7caf-498c-823b-ef52912c3262	a710c4c3-fbe3-45c6-9a7b-c0c3de43317a	Corset	sci-corset-5a003b75	0	5	2024-05-09 15:51:03.4+03	2024-05-09 15:51:03.4+03	0
+92d1a0e1-6d0b-4f5c-91a6-0238b7b1f9d7	a710c4c3-fbe3-45c6-9a7b-c0c3de43317a	Bra	sci-bra-199d3b68	0	1	2024-05-09 15:51:03.4+03	2024-05-09 15:51:03.4+03	0
+c0222ca6-1300-40a3-8e76-1bc8ce93f8d9	a710c4c3-fbe3-45c6-9a7b-c0c3de43317a	Fancy Clothing	sci-fancy-clothing-08dfa672	0	3	2024-05-09 15:51:03.4+03	2024-05-09 15:51:03.4+03	0
+3d37f4aa-1b10-4697-ab70-b41997894f88	a710c4c3-fbe3-45c6-9a7b-c0c3de43317a	Briefs	sci-briefs-8f4b8768	0	6	2024-05-09 15:51:03.4+03	2024-05-09 15:51:03.4+03	0
+d6c5605b-d00b-45f0-8f3e-be6c1bfe38b4	a710c4c3-fbe3-45c6-9a7b-c0c3de43317a	Sock	sci-sock-c2706551	0	4	2024-05-09 15:51:03.4+03	2024-05-09 15:51:03.4+03	0
+660b6cdd-0c52-4796-ba6d-7b86d71e5f6a	a710c4c3-fbe3-45c6-9a7b-c0c3de43317a	bralette	sci-bralette-ad4d333d	0	8	2024-05-09 15:51:03.4+03	2024-05-09 15:51:03.4+03	0
+e8f4a22d-9c97-4704-afbd-2b8db8275982	a710c4c3-fbe3-45c6-9a7b-c0c3de43317a	Athlete & Bodysuit	sci-athlete--bodysuit-992a735a	0	9	2024-05-09 15:51:03.4+03	2024-05-09 15:51:03.4+03	0
+0f1a8361-8b36-43eb-8e52-79477f1d0e58	a710c4c3-fbe3-45c6-9a7b-c0c3de43317a	Garter	sci-garter-75cf19fc	0	11	2024-05-09 15:51:03.4+03	2024-05-09 15:51:03.4+03	0
+0e5db503-5f0d-42ec-bd95-7d3197854034	a710c4c3-fbe3-45c6-9a7b-c0c3de43317a	Petticoat	sci-petticoat-bcaf59a9	0	10	2024-05-09 15:51:03.4+03	2024-05-09 15:51:03.4+03	0
+aaec1fa5-856e-4910-964a-b726eb311b1b	dd201912-e822-4e18-a64c-0c1460f7708a	Eye make-up	sci-eye-make-up-32cb1ae2	0	0	2024-05-09 15:53:39.617+03	2024-05-09 15:53:39.617+03	0
+2a3d51ea-c476-44eb-92b0-535c08073f66	f87e1c8c-f655-4a73-b069-88600ad9bc68	Luxury Shoes	sci-luxury-shoes-c365987f	0	1	2024-05-09 15:51:52.753+03	2024-05-09 15:51:52.753+03	0
+63c0b1f8-8b15-4348-922c-f9b82b5f51f0	f87e1c8c-f655-4a73-b069-88600ad9bc68	Luxury Clothing	sci-luxury-clothing-622aed7e	0	0	2024-05-09 15:51:52.753+03	2024-05-09 15:51:52.753+03	0
+00cafee2-71b9-4546-8c83-6621f7462463	dd201912-e822-4e18-a64c-0c1460f7708a	Skin care	sci-skin-care-b5779dc7	0	1	2024-05-09 15:53:39.617+03	2024-05-09 15:53:39.617+03	0
+a798a346-8df1-4ee0-a4aa-a6898df9d527	dd201912-e822-4e18-a64c-0c1460f7708a	Hair care	sci-hair-care-b619ef95	0	2	2024-05-09 15:53:39.617+03	2024-05-09 15:53:39.617+03	0
+f06d9a54-47e5-4de3-8c22-c9a37f1f3613	dd201912-e822-4e18-a64c-0c1460f7708a	Oral Care	sci-oral-care-5c4a67ba	0	4	2024-05-09 15:53:39.617+03	2024-05-09 15:53:39.617+03	0
+323a5986-0206-4856-b48e-8e5eba37f483	dd201912-e822-4e18-a64c-0c1460f7708a	Sexual Health	sci-sexual-health-260001f5	0	5	2024-05-09 15:53:39.617+03	2024-05-09 15:53:39.617+03	0
+6fb2a488-c93b-4d76-85f1-0f2fbab7530e	dd201912-e822-4e18-a64c-0c1460f7708a	Body Care	sci-body-care-1d799a2d	0	6	2024-05-09 15:53:39.617+03	2024-05-09 15:53:39.617+03	0
+53c28713-0a50-4975-b05d-af0d099fc441	dd201912-e822-4e18-a64c-0c1460f7708a	Sanitary pad	sci-sanitary-pad-4f062d3b	0	7	2024-05-09 15:53:39.617+03	2024-05-09 15:53:39.617+03	0
+c2ac8936-fe77-4d79-8b4e-f2c8e8d81760	dd201912-e822-4e18-a64c-0c1460f7708a	Shower Gel & Creams	sci-shower-gel--creams-3cf3650f	0	8	2024-05-09 15:53:39.617+03	2024-05-09 15:53:39.617+03	0
+a535a336-469c-44a4-b94c-4e6e6de25a92	dd201912-e822-4e18-a64c-0c1460f7708a	Lip Moisturizer	sci-lip-moisturizer-ae78be7c	0	11	2024-05-09 15:53:39.617+03	2024-05-09 15:53:39.617+03	0
+ebf0f3fc-ad49-4c97-8cf2-54e645b78cd7	dd201912-e822-4e18-a64c-0c1460f7708a	Hair Removal Products	sci-hair-removal-products-67ab39f9	0	9	2024-05-09 15:53:39.617+03	2024-05-09 15:53:39.617+03	0
+934bdef8-b081-4dfd-a2cf-b0022489d29e	dd201912-e822-4e18-a64c-0c1460f7708a	Lipstick	sci-lipstick-8244efb6	0	10	2024-05-09 15:53:39.617+03	2024-05-09 15:53:39.617+03	0
+fb2fa8e3-5279-44ae-98c5-75d88f81fe42	dd201912-e822-4e18-a64c-0c1460f7708a	Illuminator & Highlighter	sci-illuminator--highlighter-ccf90c6a	0	12	2024-05-09 15:53:39.617+03	2024-05-09 15:53:39.617+03	0
+e5cbd340-b3a9-4f8a-b05e-cddeaccf179c	dd201912-e822-4e18-a64c-0c1460f7708a	Eyeliner	sci-eyeliner-618fd8ca	0	13	2024-05-09 15:53:39.617+03	2024-05-09 15:53:39.617+03	0
+837820a8-b40b-43c0-9beb-87f951cdfa48	dd201912-e822-4e18-a64c-0c1460f7708a	Skin Makeup	sci-skin-makeup-9e72ede3	0	14	2024-05-09 15:53:39.617+03	2024-05-09 15:53:39.617+03	0
+c5f9ee1d-6843-404a-9687-a26edac5a7f1	dd201912-e822-4e18-a64c-0c1460f7708a	Manicure, pedicure	sci-manicure,-pedicure-248bf44d	0	15	2024-05-09 15:53:39.617+03	2024-05-09 15:53:39.617+03	0
+8e47a9ef-62ce-4582-abbc-0b137bd44d56	9cb5d682-5413-4c4a-bd69-ea0999a35be0	Bedroom	sci-bedroom-c3d5babd	0	1	2024-05-14 13:45:47.146+03	2024-05-14 13:45:47.146+03	0
+a43db5c1-92cc-434c-b2ee-00a5cf9655d0	dfb84d78-cd11-4521-b25b-b39cfd54e4ef	Yoga Mat	sci-yoga-mat-05a86c69	0	5	2024-05-14 13:45:47.16+03	2024-05-14 13:45:47.16+03	0
+0e094f8c-e258-4673-b311-7194f47e5d5f	899ad6e5-5202-4067-918e-52db97504692	drone	sci-drone-95812a12	0	6	2024-05-14 13:45:47.182+03	2024-05-14 13:45:47.182+03	0
+42084732-18dd-4ffe-97a2-6fad6f943705	99725bc3-d1b6-49f4-b6c7-e6586acd6709	Bathroom Set	sci-bathroom-set-896bba15	0	3	2024-05-14 13:45:47.196+03	2024-05-14 13:45:47.196+03	0
+65504f6d-f47d-431b-8f90-4f19a1b8da5f	cb12cceb-c7c5-44cd-a7a3-8f53a69c09f8	Bag	sci-bag-caa8b924	0	4	2024-05-09 12:29:50.139+03	2024-05-09 12:29:50.139+03	0
+529b7f2a-de42-4aa7-97dd-4099f527db90	cd3cad39-2095-48f0-a001-9c40512d6bb7	Shirt	sci-shirt-60b64eaf	0	2	2024-05-09 12:21:52.757+03	2024-05-09 12:21:52.757+03	0
+e88e0f4a-b93f-4c1a-a082-7153dc997d27	d688b55e-fdf1-4499-bba0-681240d9fef2	Running Shoes	sci-running-shoes-f93477d5	0	11	2024-05-09 12:22:57.499+03	2024-05-09 12:22:57.499+03	0
+567371bc-618e-4b98-bd82-ef6f8a9bfb17	b9c089d0-1c64-4af9-b694-1680c2a8f288	Outdoor Shoes	sci-outdoor-shoes-258bf1ba	0	7	2024-05-09 12:56:08+03	2024-05-09 12:56:08+03	0
+a9bdfd07-0fd2-4fe1-b3db-ba4aaf75e9c2	fef9dc63-cf47-4c17-aca0-0947230c0582	Motorcycle Jacket	sci-motorcycle-jacket-e6d1b2ec	0	9	2024-05-14 13:45:47.23+03	2024-05-14 13:45:47.23+03	0
+fd5bbefe-9ed2-4f0b-8874-a85d50cfe67f	cbc18286-adfe-4f3f-a305-9e62e2837473	The wall clock	sci-the-wall-clock-9c3ea57d	0	3	2024-05-14 13:45:47.234+03	2024-05-14 13:45:47.234+03	0
+02a5e05b-9fe6-47e6-8d6c-05242d89377d	c14bfcd7-85ee-466f-8a75-6008d8e3e70f	Drill	sci-drill-aac0b821	0	5	2024-05-14 13:45:47.239+03	2024-05-14 13:45:47.239+03	0
+39643e51-185f-4d4d-9c1a-6be95112abb8	16a6514b-b088-4d4d-b796-eff3e144f9c9	Pen	sci-pen-5adbb2cb	0	4	2024-05-14 13:45:47.243+03	2024-05-14 13:45:47.243+03	0
+2423cd9d-9627-470d-b682-b449d158e1f4	dd201912-e822-4e18-a64c-0c1460f7708a	Hand cream	sci-hand-cream-4006da7b	0	17	2024-05-09 15:53:39.617+03	2024-05-09 15:53:39.617+03	0
+15db3689-bfbf-4390-b4d4-eff6deefe3ca	dd201912-e822-4e18-a64c-0c1460f7708a	Facial Moisturizer 	sci-facial-moisturizer-2393be41	0	18	2024-05-09 15:53:39.617+03	2024-05-09 15:53:39.617+03	0
+c4df49fb-e86c-4fca-baf5-a1893a8529b4	023938ff-d71e-4632-a26e-e0f8d6e880b9	Sweatshirt	sci-sweatshirt-9616d52a	0	0	2024-05-12 22:47:30.313+03	2024-05-12 22:47:30.313+03	0
+69fb0279-e4ad-414f-8f48-c575a710d366	023938ff-d71e-4632-a26e-e0f8d6e880b9	T-shirt	sci-t-shirt-a96e4f6b	0	1	2024-05-12 22:47:30.313+03	2024-05-12 22:47:30.313+03	0
+f1ee5684-a46b-45eb-83f6-ddea94fe6b24	023938ff-d71e-4632-a26e-e0f8d6e880b9	Tracksuit	sci-tracksuit-a3139cf3	0	4	2024-05-12 22:47:30.313+03	2024-05-12 22:47:30.313+03	0
+f07d8e6a-9bc3-4a5e-bed9-f2b88b1e0651	023938ff-d71e-4632-a26e-e0f8d6e880b9	Leggings	sci-leggings-4dc0dfc6	0	3	2024-05-12 22:47:30.313+03	2024-05-12 22:47:30.313+03	0
+875b13c7-1f18-45a1-8c15-729bcbd221f5	023938ff-d71e-4632-a26e-e0f8d6e880b9	Running Shoes	sci-running-shoes-ee4bf2e6	0	5	2024-05-12 22:47:30.313+03	2024-05-12 22:47:30.313+03	0
+c73955da-cf05-44a5-9df5-f42e35d85183	023938ff-d71e-4632-a26e-e0f8d6e880b9	Sports Bag	sci-sports-bag-52bd30b3	0	6	2024-05-12 22:47:30.313+03	2024-05-12 22:47:30.313+03	0
+2deae7aa-158c-440c-b41a-9fadcbc6807f	023938ff-d71e-4632-a26e-e0f8d6e880b9	Sports Equipment	sci-sports-equipment-70e65ff2	0	7	2024-05-12 22:47:30.313+03	2024-05-12 22:47:30.313+03	0
+0bed7622-5de5-473d-8dbd-2d8f04e11d1e	023938ff-d71e-4632-a26e-e0f8d6e880b9	Snow Boot	sci-snow-boot-ec3304d2	0	9	2024-05-12 22:47:30.313+03	2024-05-12 22:47:30.313+03	0
+f8ac42b2-5094-41f9-8791-cedc95f24a2f	023938ff-d71e-4632-a26e-e0f8d6e880b9	Athlete Accessories	sci-athlete-accessories-562a73d2	0	12	2024-05-12 22:47:30.313+03	2024-05-12 22:47:30.313+03	0
+2b53fa08-c889-4798-b845-fb100a3050db	023938ff-d71e-4632-a26e-e0f8d6e880b9	Outdoor Shoes	sci-outdoor-shoes-e0a1eb8e	0	8	2024-05-12 22:47:30.313+03	2024-05-12 22:47:30.313+03	0
+80dca765-4f70-4fa8-9ff4-a448cbbc02f0	023938ff-d71e-4632-a26e-e0f8d6e880b9	Outdoor Equipment	sci-outdoor-equipment-ab4115c4	0	10	2024-05-12 22:47:30.313+03	2024-05-12 22:47:30.313+03	0
+b5d3a063-51e0-4f43-864e-ae46a3d642d0	023938ff-d71e-4632-a26e-e0f8d6e880b9	Sports Nutrition	sci-sports-nutrition-42578640	0	11	2024-05-12 22:47:30.313+03	2024-05-12 22:47:30.313+03	0
+d636598f-ce82-44b9-abee-54edf66ef0f1	023938ff-d71e-4632-a26e-e0f8d6e880b9	Sleeping bag	sci-sleeping-bag-46fbe769	0	15	2024-05-12 22:47:30.313+03	2024-05-12 22:47:30.313+03	0
+170cca30-4863-4097-8f39-595a25357963	023938ff-d71e-4632-a26e-e0f8d6e880b9	Mat	sci-mat-02efa653	0	16	2024-05-12 22:47:30.313+03	2024-05-12 22:47:30.313+03	0
+ef58e1cb-9898-4805-9aaa-201521c194c7	023938ff-d71e-4632-a26e-e0f8d6e880b9	Women's Sport Jacket	sci-women's-sport-jacket-6045635c	0	18	2024-05-12 22:47:30.313+03	2024-05-12 22:47:30.313+03	0
+0f832dc0-6f35-4d06-9c5a-d753dc4f63a3	023938ff-d71e-4632-a26e-e0f8d6e880b9	Mountaineering	sci-mountaineering-1d317ff0	0	17	2024-05-12 22:47:30.313+03	2024-05-12 22:47:30.313+03	0
+40e8d090-8658-428a-bca1-77b96f1d5d7f	023938ff-d71e-4632-a26e-e0f8d6e880b9	Sneakers	sci-sneakers-2ed2f674	0	19	2024-05-12 22:47:30.313+03	2024-05-12 22:47:30.313+03	0
+4ebb86b9-ad0d-40ab-9992-c1953dd0fe32	3a2d74ae-208f-49d4-b3e0-b757a4825401	Shorts	sci-shorts-bb5d9ffd	0	9	2024-05-14 13:11:56.534+03	2024-05-14 13:11:56.534+03	0
+7c8c92f5-c238-4171-a1f6-eec7f14e747a	3a2d74ae-208f-49d4-b3e0-b757a4825401	Baby	sci-baby-1cd9e41b	0	0	2024-05-14 13:11:56.533+03	2024-05-14 13:11:56.533+03	0
+9f4ce5c5-4573-44a7-a705-450f27e24e43	3a2d74ae-208f-49d4-b3e0-b757a4825401	Baby Booties	sci-baby-booties-511165bd	0	10	2024-05-14 13:11:56.534+03	2024-05-14 13:11:56.534+03	0
+f54db828-ffe2-48a0-8e84-2816c1a24446	3a2d74ae-208f-49d4-b3e0-b757a4825401	Cardigan	sci-cardigan-1aad85ba	0	11	2024-05-14 13:11:56.534+03	2024-05-14 13:11:56.534+03	0
+db56baa8-e569-41d5-aa2d-212d21794845	3a2d74ae-208f-49d4-b3e0-b757a4825401	T-shirt	sci-t-shirt-b8e6bde5	0	14	2024-05-14 13:11:56.534+03	2024-05-14 13:11:56.534+03	0
+69badeec-2e57-47ec-ba8e-a77d2b20506e	3a2d74ae-208f-49d4-b3e0-b757a4825401	Bottom Top Set	sci-bottom-top-set-8e2599ee	0	13	2024-05-14 13:11:56.534+03	2024-05-14 13:11:56.534+03	0
+03cc14f8-ec95-4f49-a91b-ea30af15fcef	3a2d74ae-208f-49d4-b3e0-b757a4825401	Blanket	sci-blanket-29f1bdde	0	12	2024-05-14 13:11:56.534+03	2024-05-14 13:11:56.534+03	0
+20ff0f26-327c-4eec-80d0-4ce2ca5b413a	3a2d74ae-208f-49d4-b3e0-b757a4825401	Skirt	sci-skirt-bcf41b29	0	15	2024-05-14 13:11:56.535+03	2024-05-14 13:11:56.535+03	0
+5e7829b9-62a2-4839-a85c-a6cc2c79c00e	3a2d74ae-208f-49d4-b3e0-b757a4825401	Sock	sci-sock-cb71c8ee	0	16	2024-05-14 13:11:56.535+03	2024-05-14 13:11:56.535+03	0
+6e1e9536-920e-4a06-a827-800de9f7a15a	3a2d74ae-208f-49d4-b3e0-b757a4825401	Body & Zibın	sci-body--zibın-ae7afc5f	0	6	2024-05-14 13:11:56.534+03	2024-05-14 13:11:56.534+03	0
+4b38d0d2-4a6f-4efe-9f16-7f8d1d1f0351	3a2d74ae-208f-49d4-b3e0-b757a4825401	Hat	sci-hat-06df8269	0	17	2024-05-14 13:11:56.535+03	2024-05-14 13:11:56.535+03	0
+1f5ff957-13a4-4fcf-885a-622fef6288b6	3a2d74ae-208f-49d4-b3e0-b757a4825401	Hospital Exit	sci-hospital-exit-35821798	0	3	2024-05-14 13:11:56.534+03	2024-05-14 13:11:56.534+03	0
+87de8eb5-6957-45bb-a241-9d595e98f804	3a2d74ae-208f-49d4-b3e0-b757a4825401	Beret	sci-beret-1772a141	0	20	2024-05-14 13:11:56.535+03	2024-05-14 13:11:56.535+03	0
+0a9a6d1e-d4a6-4e43-a88b-c8b279ab01fd	3a2d74ae-208f-49d4-b3e0-b757a4825401	Tracksuit	sci-tracksuit-6f5469c9	0	19	2024-05-14 13:11:56.535+03	2024-05-14 13:11:56.535+03	0
+1b5f2a51-4017-4401-8993-2616ed246054	3a2d74ae-208f-49d4-b3e0-b757a4825401	Glove	sci-glove-63cce403	0	18	2024-05-14 13:11:56.535+03	2024-05-14 13:11:56.535+03	0
+503d0102-166e-4418-8e43-28f1c37a2307	d8213269-6cbe-4fdd-958d-8a325768715c	Toy Baskets	sci-toy-baskets-ac8d2122	0	4	2024-05-14 13:11:56.615+03	2024-05-14 13:11:56.615+03	0
+c1b348ff-0705-4b3b-9ead-b638bb38c819	d8213269-6cbe-4fdd-958d-8a325768715c	Baby Room	sci-baby-room-7e9e769e	0	0	2024-05-14 13:11:56.614+03	2024-05-14 13:11:56.614+03	0
+1eae525c-5e6d-46ff-82af-ac1538e413df	d8213269-6cbe-4fdd-958d-8a325768715c	Baby Bed	sci-baby-bed-ad5d422d	0	2	2024-05-14 13:11:56.614+03	2024-05-14 13:11:56.614+03	0
+71701175-8339-4430-8592-cf4add735728	d8213269-6cbe-4fdd-958d-8a325768715c	Baby Bedding	sci-baby-bedding-1259abb3	0	3	2024-05-14 13:11:56.614+03	2024-05-14 13:11:56.614+03	0
+8293585f-62ba-4deb-a50c-aa39680f456e	d8213269-6cbe-4fdd-958d-8a325768715c	Baby Mosquito Net	sci-baby-mosquito-net-4abf000e	0	5	2024-05-14 13:11:56.615+03	2024-05-14 13:11:56.615+03	0
+fb0dd5b5-16b3-4938-8b35-a94f6c0d7fe5	d8213269-6cbe-4fdd-958d-8a325768715c	Toy Cabinet	sci-toy-cabinet-24b1db15	0	6	2024-05-14 13:11:56.615+03	2024-05-14 13:11:56.615+03	0
+27666ccc-f753-45a4-96cf-2c88ac7df8c3	d8213269-6cbe-4fdd-958d-8a325768715c	Baby Playpen	sci-baby-playpen-43d2eb5e	0	9	2024-05-14 13:11:56.615+03	2024-05-14 13:11:56.615+03	0
+2575a34b-4201-4da0-ab56-2afaf9b7301a	528394a5-f619-4fa0-a4ad-051b02a68b3a	Girl Child	sci-girl-child-921ce5e4	0	0	2024-05-14 13:11:56.645+03	2024-05-14 13:11:56.645+03	0
+0dc69904-d52c-41e9-b168-b45ab2a5fc90	528394a5-f619-4fa0-a4ad-051b02a68b3a	Casual Shoes	sci-casual-shoes-46035f03	0	8	2024-05-14 13:11:56.646+03	2024-05-14 13:11:56.646+03	0
+085ed965-1c90-43fa-99ff-503b2cfdbb34	528394a5-f619-4fa0-a4ad-051b02a68b3a	Cocktail dress	sci-cocktail-dress-52ab8a68	0	15	2024-05-14 13:11:56.648+03	2024-05-14 13:11:56.648+03	0
+6a294e55-889e-436e-8124-7fa21246bfe9	00047106-3139-4c17-9115-e9785f6484d9	Toy Tractor	sci-toy-tractor-2b1b73d7	0	11	2024-05-14 13:11:56.671+03	2024-05-14 13:11:56.671+03	0
+295386c8-5210-4c76-bde3-649927c18771	dfd8a850-c768-4fcc-b45f-33a7884acd59	Park Bed	sci-park-bed-10cf4cf0	0	2	2024-05-14 13:11:56.688+03	2024-05-14 13:11:56.688+03	0
+6c146804-9409-454f-8dc2-c10fdf6c5178	71cfdae4-3481-4e62-992e-343daa87a243	Baby Comb	sci-baby-comb-9a45be6d	0	9	2024-05-14 13:11:56.678+03	2024-05-14 13:11:56.678+03	0
+c1daf810-742c-48dc-9a8f-8826719f3386	71cfdae4-3481-4e62-992e-343daa87a243	Baby Detergents	sci-baby-detergents-b67b9b5e	0	6	2024-05-14 13:11:56.678+03	2024-05-14 13:11:56.678+03	0
+e507662c-1a8c-49fb-93b7-c7439ed881f4	9cb5d682-5413-4c4a-bd69-ea0999a35be0	Carpet & Rug & Mat	sci-carpet-rug-mat-a0312bdf	0	2	2024-05-14 13:45:47.147+03	2024-05-14 13:45:47.147+03	0
+2a0e41ca-1d38-4c1d-9f62-c811f0709714	cb12cceb-c7c5-44cd-a7a3-8f53a69c09f8	card holder	sci-card-holder-2ee19a89	0	6	2024-05-09 12:29:50.139+03	2024-05-09 12:29:50.139+03	0
+7f67d678-535c-4316-941a-0d7748c50656	5273e3c9-92b3-4984-b24e-e9ad7d53e2ae	Plus Size Sweatshirt	sci-plus-size-sweatshirt-66ea8d5d	0	0	2024-05-09 12:27:46.841+03	2024-05-09 12:27:46.841+03	0
+64923ed6-a46d-465c-b2f0-1015d3967757	cd3cad39-2095-48f0-a001-9c40512d6bb7	Tracksuit	sci-tracksuit-81f124b2	0	3	2024-05-09 12:21:52.757+03	2024-05-09 12:21:52.757+03	0
+53993379-de44-4470-88a7-b51de8c5d4bf	ebe1d02f-ca41-4941-bc22-da3aa4d391ba	Oven & Cake Mold	sci-oven-cake-mold-28979496	0	5	2024-05-14 13:45:47.014+03	2024-05-14 13:45:47.014+03	0
+193b041e-463f-41b5-afce-33f14b8c57dd	783b21a4-72f4-4adb-9e20-2f86f1a410dc	Jacket	sci-jacket-b1f0d7c0	0	8	2024-05-09 15:45:00.934+03	2024-05-09 15:45:00.934+03	0
+21a490e3-e6a0-46f2-a888-cb805da7fa40	4015a5aa-a422-4146-87bd-c0c252d87d2b	Games & Consoles	sci-games-consoles-edaf1d3b	0	5	2024-05-09 12:57:02.726+03	2024-05-09 12:57:02.726+03	0
+05060a99-4ea5-4ce1-84d8-760634cac78e	b9c089d0-1c64-4af9-b694-1680c2a8f288	T-shirt	sci-t-shirt-f78bd409	0	2	2024-05-09 12:56:08+03	2024-05-09 12:56:08+03	0
+477fef91-ff85-42f6-923e-ea574e83c6ad	dfb84d78-cd11-4521-b25b-b39cfd54e4ef	Sports Gloves	sci-sports-gloves-826f28d7	0	6	2024-05-14 13:45:47.161+03	2024-05-14 13:45:47.161+03	0
+50b09cd9-fbcb-4e92-b2d3-0795e09fa9d5	dd201912-e822-4e18-a64c-0c1460f7708a	Make-up	sci-make-up-088f80a8	0	3	2024-05-09 15:53:39.617+03	2024-05-09 15:53:39.617+03	0
+8018b46d-9349-4b02-bfef-ef789f494f21	dd201912-e822-4e18-a64c-0c1460f7708a	BB & CC Cream	sci-bb--cc-cream-8aac1fcd	0	16	2024-05-09 15:53:39.617+03	2024-05-09 15:53:39.617+03	0
+3d34805d-acaf-4774-bb42-1e17c6490ee6	9cb5d682-5413-4c4a-bd69-ea0999a35be0	Home textiles	sci-home-textiles-c8146131	0	0	2024-05-14 13:45:47.144+03	2024-05-14 13:45:47.144+03	0
+5bb39829-4fcc-4c94-aae1-81dd5c73d80f	494e782c-2037-4ccc-a3db-a4fa9ce7866c	Cupboard	sci-cupboard-5659d19b	0	12	2024-05-14 13:45:47.209+03	2024-05-14 13:45:47.209+03	0
+b3e95f39-39b6-40a2-b78a-915513094716	dfb84d78-cd11-4521-b25b-b39cfd54e4ef	Dumbbell & Weight	sci-dumbbell-weight-c0762b08	0	2	2024-05-14 13:45:47.159+03	2024-05-14 13:45:47.159+03	0
+1da7d930-d01d-48e6-896f-21d0dfd8a8d0	dfb84d78-cd11-4521-b25b-b39cfd54e4ef	Sports Water Bottles	sci-sports-water-bottles-87aa529e	0	8	2024-05-14 13:45:47.162+03	2024-05-14 13:45:47.162+03	0
+6f20d428-d1c2-4f83-8287-6a8b2b9fe76c	899ad6e5-5202-4067-918e-52db97504692	Musical Instruments and Equipment	sci-musical-instruments-and-equipment-07104aeb	0	2	2024-05-14 13:45:47.181+03	2024-05-14 13:45:47.181+03	0
+05a89c52-91d4-4b56-beec-1a1edc06dec2	99725bc3-d1b6-49f4-b6c7-e6586acd6709	Bath mat	sci-bath-mat-191ba5d3	0	4	2024-05-14 13:45:47.196+03	2024-05-14 13:45:47.196+03	0
+e9c5f866-5371-4e50-ba44-1129429080e6	494e782c-2037-4ccc-a3db-a4fa9ce7866c	Bedroom	sci-bedroom-23962b18	0	2	2024-05-14 13:45:47.206+03	2024-05-14 13:45:47.206+03	0
+f8581c89-1e51-4d6d-85b2-d69287660f29	f9ddb9ff-41ed-46fd-8234-9b851cc5d0b8	Foreign Language Children's Books	sci-foreign-language-children's-books-f6da9c87	0	10	2024-05-14 13:45:47.216+03	2024-05-14 13:45:47.216+03	0
+07201ad9-3b34-45ff-ac26-e61cffbaeaeb	d03ceb1d-7568-45bb-87c9-dfeebd46a5be	Lampshade	sci-lampshade-bccecd41	0	3	2024-05-14 13:45:47.22+03	2024-05-14 13:45:47.22+03	0
+7e31e705-b880-4a6d-9cb5-ee58f9efebf8	528394a5-f619-4fa0-a4ad-051b02a68b3a	Dress	sci-dress-9d6b93b7	0	1	2024-05-14 13:11:56.645+03	2024-05-14 13:11:56.645+03	0
+c5b93351-6e93-475f-8c60-fd612debbe15	fef9dc63-cf47-4c17-aca0-0947230c0582	Automobile & Motorcycle	sci-automobile-motorcycle-3f84fdcc	0	0	2024-05-14 13:45:47.229+03	2024-05-14 13:45:47.229+03	0
+c7f49976-b5c3-4f1f-90bf-d1580767773f	528394a5-f619-4fa0-a4ad-051b02a68b3a	Tracksuit	sci-tracksuit-0556d631	0	4	2024-05-14 13:11:56.646+03	2024-05-14 13:11:56.646+03	0
+3756e75a-7201-407b-a7ff-2bde12dd3685	528394a5-f619-4fa0-a4ad-051b02a68b3a	Jumper	sci-jumper-d00a2ce8	0	18	2024-05-14 13:11:56.648+03	2024-05-14 13:11:56.648+03	0
+8b6b087e-3949-4c61-bb19-b9401c2ab46a	528394a5-f619-4fa0-a4ad-051b02a68b3a	coat	sci-coat-e7acd26f	0	10	2024-05-14 13:11:56.647+03	2024-05-14 13:11:56.647+03	0
+a829c6b4-08b5-4bee-8c1b-cac78289bfb8	528394a5-f619-4fa0-a4ad-051b02a68b3a	Trousers	sci-trousers-cbb38954	0	17	2024-05-14 13:11:56.648+03	2024-05-14 13:11:56.648+03	0
+0b325ef7-fc4c-4418-9f96-a3750d95a03e	528394a5-f619-4fa0-a4ad-051b02a68b3a	Jacket	sci-jacket-3e18460a	0	16	2024-05-14 13:11:56.649+03	2024-05-14 13:11:56.649+03	0
+89b43a75-109d-47d1-a8a2-901f0ad373aa	00047106-3139-4c17-9115-e9785f6484d9	The school bag	sci-the-school-bag-382c318b	0	7	2024-05-14 13:11:56.67+03	2024-05-14 13:11:56.67+03	0
+e2b29984-9ccd-4347-8ffb-98b2ceee1857	00047106-3139-4c17-9115-e9785f6484d9	Sweatshirt	sci-sweatshirt-104241d5	0	1	2024-05-14 13:11:56.668+03	2024-05-14 13:11:56.668+03	0
+818296ec-5169-486c-b271-b9e9ea95fdab	00047106-3139-4c17-9115-e9785f6484d9	boxers	sci-boxers-8da94850	0	15	2024-05-14 13:11:56.672+03	2024-05-14 13:11:56.672+03	0
+788a3077-b80a-4671-8067-65c091a50151	dfd8a850-c768-4fcc-b45f-33a7884acd59	Walker	sci-walker-6c86441a	0	5	2024-05-14 13:11:56.688+03	2024-05-14 13:11:56.688+03	0
+6fea6ed9-66dd-4f1f-8db5-07fdce96bcc5	71cfdae4-3481-4e62-992e-343daa87a243	Diaper	sci-diaper-c024fe14	0	1	2024-05-14 13:11:56.678+03	2024-05-14 13:11:56.678+03	0
+12b0e8b8-fefd-4364-a836-2196c1a3a8ad	71cfdae4-3481-4e62-992e-343daa87a243	Baby Bag	sci-baby-bag-240e6acf	0	4	2024-05-14 13:11:56.678+03	2024-05-14 13:11:56.678+03	0
+fcb99800-e555-49dc-89d6-8e3afba5f7d1	9cb5d682-5413-4c4a-bd69-ea0999a35be0	Sleep set	sci-sleep-set-9cd35683	0	8	2024-05-14 13:45:47.149+03	2024-05-14 13:45:47.149+03	0
+287fb82d-febc-4cee-b9bb-5cb3962b2b42	99725bc3-d1b6-49f4-b6c7-e6586acd6709	Bath	sci-bath-2e069473	0	0	2024-05-14 13:45:47.196+03	2024-05-14 13:45:47.196+03	0
+5a6c317c-ba58-4d3a-b4db-d8a367d4bedb	dfb84d78-cd11-4521-b25b-b39cfd54e4ef	Elliptical Bike	sci-elliptical-bike-cc6b83c1	0	4	2024-05-14 13:45:47.16+03	2024-05-14 13:45:47.16+03	0
+90adadd5-d9e6-4cea-ba8f-b88a1bd18e36	899ad6e5-5202-4067-918e-52db97504692	Gift Basket	sci-gift-basket-2eeb8a9d	0	8	2024-05-14 13:45:47.184+03	2024-05-14 13:45:47.184+03	0
+143421f5-7e89-4b3b-b7a6-be0453a37f9c	494e782c-2037-4ccc-a3db-a4fa9ce7866c	Sofa Set	sci-sofa-set-fae59e6a	0	8	2024-05-14 13:45:47.207+03	2024-05-14 13:45:47.207+03	0
+def915b4-1711-48c8-968f-43037a466636	f9ddb9ff-41ed-46fd-8234-9b851cc5d0b8	Religious Books	sci-religious-books-06c3e528	0	8	2024-05-14 13:45:47.216+03	2024-05-14 13:45:47.216+03	0
+bb14b40f-461f-440e-9b79-b50809be7fb0	fef9dc63-cf47-4c17-aca0-0947230c0582	Helmet	sci-helmet-5cdacd08	0	4	2024-05-14 13:45:47.23+03	2024-05-14 13:45:47.23+03	0
+891f43d7-ff0e-41f0-b383-9d9b8964c241	cbc18286-adfe-4f3f-a305-9e62e2837473	Mirror	sci-mirror-74a82617	0	4	2024-05-14 13:45:47.235+03	2024-05-14 13:45:47.235+03	0
+dc813ed2-c082-4672-9ad1-c8f1c83a4893	c14bfcd7-85ee-466f-8a75-6008d8e3e70f	Power Tool	sci-power-tool-0f87a2d9	0	2	2024-05-14 13:45:47.238+03	2024-05-14 13:45:47.238+03	0
+566fe8b1-d866-44ed-8dcc-0dc6bd524ab1	16a6514b-b088-4d4d-b796-eff3e144f9c9	agenda	sci-agenda-ad3981d4	0	2	2024-05-14 13:45:47.243+03	2024-05-14 13:45:47.243+03	0
+3dbab005-2fec-4d67-a46c-ca5b8b5722dc	528394a5-f619-4fa0-a4ad-051b02a68b3a	Underwear & Sleepwear	sci-underwear--sleepwear-9a51633f	0	5	2024-05-14 13:11:56.646+03	2024-05-14 13:11:56.646+03	0
+afd6bba2-8dc5-400a-acc0-d2885b7dba3d	528394a5-f619-4fa0-a4ad-051b02a68b3a	Leggings	sci-leggings-664a0b92	0	7	2024-05-14 13:11:56.646+03	2024-05-14 13:11:56.646+03	0
+0ddd2a60-5b5f-47f0-9d05-232c745b19d8	528394a5-f619-4fa0-a4ad-051b02a68b3a	Shorts	sci-shorts-5776fe89	0	9	2024-05-14 13:11:56.647+03	2024-05-14 13:11:56.647+03	0
+6d36f77b-8c7e-4f9a-ae77-96e69372b9df	528394a5-f619-4fa0-a4ad-051b02a68b3a	Toy Kitchen	sci-toy-kitchen-0bcc6157	0	13	2024-05-14 13:11:56.648+03	2024-05-14 13:11:56.648+03	0
+719fc72d-d536-4194-a2fd-4dcf97a0fcef	528394a5-f619-4fa0-a4ad-051b02a68b3a	Boots	sci-boots-b56abbce	0	19	2024-05-14 13:11:56.649+03	2024-05-14 13:11:56.649+03	0
+977e1f91-090f-455f-9136-1fac87af6c67	00047106-3139-4c17-9115-e9785f6484d9	coat	sci-coat-90f34265	0	10	2024-05-14 13:11:56.67+03	2024-05-14 13:11:56.67+03	0
+2872b24a-30ea-404c-a669-b5dd7ab78974	71cfdae4-3481-4e62-992e-343daa87a243	Baby Body Cream	sci-baby-body-cream-0dcd7d0c	0	7	2024-05-14 13:11:56.678+03	2024-05-14 13:11:56.678+03	0
+658677d4-2dff-4305-8c5d-a8d9d3d17476	528394a5-f619-4fa0-a4ad-051b02a68b3a	Hat & Beret & Gloves	sci-hat--beret--gloves-f75e2ae5	0	20	2024-05-14 13:11:56.649+03	2024-05-14 13:11:56.649+03	0
+e899542d-5d43-4ccb-89b1-a494247a7a3c	00047106-3139-4c17-9115-e9785f6484d9	Suit	sci-suit-17b2c9c0	0	20	2024-05-14 13:11:56.673+03	2024-05-14 13:11:56.673+03	0
+ce6c62ca-5811-4400-b688-62201f5d40b4	00047106-3139-4c17-9115-e9785f6484d9	Battery Powered Car	sci-battery-powered-car-e1b6116a	0	12	2024-05-14 13:11:56.671+03	2024-05-14 13:11:56.671+03	0
+ce6cfa73-99b6-4a71-85ee-ab6885c4f03c	9cb5d682-5413-4c4a-bd69-ea0999a35be0	Linens set	sci-linens-set-abd066ab	0	4	2024-05-14 13:45:47.147+03	2024-05-14 13:45:47.147+03	0
+580a858f-abc1-4c7a-bf2c-3221a91e1acd	dfb84d78-cd11-4521-b25b-b39cfd54e4ef	Pilates & Yoga	sci-pilates-yoga-42c38b7c	0	3	2024-05-14 13:45:47.16+03	2024-05-14 13:45:47.16+03	0
+1c52b3d5-9c93-48a6-b1ae-5e072e60576b	494e782c-2037-4ccc-a3db-a4fa9ce7866c	Kitchen cupboard	sci-kitchen-cupboard-aab2cbf3	0	9	2024-05-14 13:45:47.207+03	2024-05-14 13:45:47.207+03	0
+ae6de571-b59e-4b10-bf32-6861820392b4	f9ddb9ff-41ed-46fd-8234-9b851cc5d0b8	Foreign Language Education Books	sci-foreign-language-education-books-8ed94c2d	0	6	2024-05-14 13:45:47.216+03	2024-05-14 13:45:47.216+03	0
+bd811f94-89ec-41cc-b153-a29875122cb7	d03ceb1d-7568-45bb-87c9-dfeebd46a5be	Lighting	sci-lighting-893cbe76	0	0	2024-05-14 13:45:47.22+03	2024-05-14 13:45:47.22+03	0
+6cd1b9c3-d9f8-4915-be5d-9ad17fe94ac9	fef9dc63-cf47-4c17-aca0-0947230c0582	Car Mat	sci-car-mat-a8355c02	0	2	2024-05-14 13:45:47.229+03	2024-05-14 13:45:47.229+03	0
+6570f596-49cf-4e4b-a29e-1acd31aa9918	ebe1d02f-ca41-4941-bc22-da3aa4d391ba	Platter	sci-platter-f060a03c	0	9	2024-05-14 13:45:47.015+03	2024-05-14 13:45:47.015+03	0
+281ad237-6dc6-4fb9-a237-f7910132bbfe	a0faa5fc-04f8-470c-99a4-25e19bcf6813	Evening Dress Bag	sci-evening-dress-bag-981f0164	0	9	2024-05-09 15:49:47.65+03	2024-05-09 15:49:47.65+03	0
+a6875aac-0b0f-477b-bb69-b2c6a34754ac	a0faa5fc-04f8-470c-99a4-25e19bcf6813	Women's Sports Bag	sci-women's-sports-bag-d6b9f3e0	0	18	2024-05-09 15:49:47.65+03	2024-05-09 15:49:47.65+03	0
+f4eb925e-cdd5-45f1-8c74-917dd26a26a1	ebe1d02f-ca41-4941-bc22-da3aa4d391ba	Dinner set	sci-dinner-set-99a3d2b8	0	1	2024-05-14 13:45:47.014+03	2024-05-14 13:45:47.014+03	0
+af965e74-155b-4617-ab54-7c4527ca4a9e	494e782c-2037-4ccc-a3db-a4fa9ce7866c	Living Room & Living Room	sci-living-room-living-room-31e81dda	0	1	2024-05-14 13:45:47.206+03	2024-05-14 13:45:47.206+03	0
+6c75a9bc-5d33-4314-8ac3-0a82ffebbec9	f9ddb9ff-41ed-46fd-8234-9b851cc5d0b8	Courses and Supplementary Books	sci-courses-and-supplementary-books-d3ed005b	0	2	2024-05-14 13:45:47.216+03	2024-05-14 13:45:47.216+03	0
+0d1a087b-c860-4395-b536-803262a01497	023938ff-d71e-4632-a26e-e0f8d6e880b9	Sports Bra	sci-sports-bra-8572ddb3	0	2	2024-05-12 22:47:30.313+03	2024-05-12 22:47:30.313+03	0
+59c88df3-1174-44cc-91a8-d0b036c36f7a	023938ff-d71e-4632-a26e-e0f8d6e880b9	Ski Equipment	sci-ski-equipment-05613544	0	14	2024-05-12 22:47:30.313+03	2024-05-12 22:47:30.313+03	0
+5e952741-2217-492b-86f8-86ff543cc361	d8213269-6cbe-4fdd-958d-8a325768715c	Baby Room Furniture	sci-baby-room-furniture-ea369d43	0	7	2024-05-14 13:11:56.615+03	2024-05-14 13:11:56.615+03	0
+036ffc6c-d7da-4e3c-a008-c4315740b5d1	dfd8a850-c768-4fcc-b45f-33a7884acd59	Car Seat	sci-car-seat-6c1ce4f7	0	6	2024-05-14 13:11:56.689+03	2024-05-14 13:11:56.689+03	0
+9662dc2c-46dc-4973-ae24-e6ca065a0efc	528394a5-f619-4fa0-a4ad-051b02a68b3a	T-Shirt & Tank Top	sci-t-shirt--tank-top-6f0ad0fb	0	6	2024-05-14 13:11:56.646+03	2024-05-14 13:11:56.646+03	0
+c112c89e-a62b-4943-a7a1-3254118db5f5	528394a5-f619-4fa0-a4ad-051b02a68b3a	Children's Playhouse	sci-children's-playhouse-f8060239	0	11	2024-05-14 13:11:56.647+03	2024-05-14 13:11:56.647+03	0
+c91ce1b3-b04e-4ec7-a2cf-f9e2870a6d0e	528394a5-f619-4fa0-a4ad-051b02a68b3a	Coat	sci-coat-c033e71f	0	14	2024-05-14 13:11:56.648+03	2024-05-14 13:11:56.648+03	0
+3e181765-6d3b-4a1a-a7f4-fdb5cf4e53bd	00047106-3139-4c17-9115-e9785f6484d9	Hat & Beret & Gloves	sci-hat--beret--gloves-78e3dfd5	0	19	2024-05-14 13:11:56.673+03	2024-05-14 13:11:56.673+03	0
+2161bc8d-80c6-454f-aeee-fa200434dea6	3a2d74ae-208f-49d4-b3e0-b757a4825401	Dress	sci-dress-5e29eab0	0	8	2024-05-14 13:11:56.534+03	2024-05-14 13:11:56.534+03	0
+3ac2ce5b-da91-4787-81aa-2b061dbeb7b4	00047106-3139-4c17-9115-e9785f6484d9	Shorts	sci-shorts-93e6ddff	0	8	2024-05-14 13:11:56.67+03	2024-05-14 13:11:56.67+03	0
+11336fae-77af-451a-acce-6f0aea737f9b	00047106-3139-4c17-9115-e9785f6484d9	Casual Shoes	sci-casual-shoes-6b7d3b0a	0	6	2024-05-14 13:11:56.669+03	2024-05-14 13:11:56.669+03	0
+ec45c0a0-3a66-497e-9aff-d2bb894d33bf	dfd8a850-c768-4fcc-b45f-33a7884acd59	Walking stick stroller	sci-walking-stick-stroller-73947aaf	0	7	2024-05-14 13:11:56.689+03	2024-05-14 13:11:56.689+03	0
+d286441c-6582-4858-a7af-fa06af54870b	00047106-3139-4c17-9115-e9785f6484d9	underwear	sci-underwear-9787d0f9	0	16	2024-05-14 13:11:56.672+03	2024-05-14 13:11:56.672+03	0
+a52cf3e8-d5fb-44c8-a5d5-afec3d2c70b0	dfd8a850-c768-4fcc-b45f-33a7884acd59	Baby Swings	sci-baby-swings-714ace39	0	9	2024-05-14 13:11:56.689+03	2024-05-14 13:11:56.689+03	0
+a46c5058-e6b5-4afa-9060-6c0aad672cb7	ad272dcd-9924-427b-be6f-4b5148614eb6	Toy	sci-toy-70268e68	0	0	2024-05-14 13:11:56.698+03	2024-05-14 13:11:56.698+03	0
+36acbbd5-3ed5-48b0-b3a9-ce0d3f39844f	ad272dcd-9924-427b-be6f-4b5148614eb6	Robot Toy	sci-robot-toy-90a628a8	0	6	2024-05-14 13:11:56.698+03	2024-05-14 13:11:56.698+03	0
+4bd458a4-1430-4cb4-b445-6fb04c314188	9cb5d682-5413-4c4a-bd69-ea0999a35be0	Pillow	sci-pillow-c8d63532	0	5	2024-05-14 13:45:47.148+03	2024-05-14 13:45:47.148+03	0
+6c2c4131-ea3a-41f7-90b6-f48f300db49c	dfb84d78-cd11-4521-b25b-b39cfd54e4ef	Sports & Outdoor	sci-sports-outdoor-3bc2cd10	0	0	2024-05-14 13:45:47.159+03	2024-05-14 13:45:47.159+03	0
+e44d1eb2-650b-41db-baa7-c9ad0ccfdcaf	899ad6e5-5202-4067-918e-52db97504692	Hobby	sci-hobby-ca1c022e	0	0	2024-05-14 13:45:47.181+03	2024-05-14 13:45:47.181+03	0
+c15bcab8-a905-4715-85ef-57d5c2545176	99725bc3-d1b6-49f4-b6c7-e6586acd6709	Towel for feet	sci-towel-for-feet-664bbdfe	0	8	2024-05-14 13:45:47.197+03	2024-05-14 13:45:47.197+03	0
+1c05efd2-1e95-48cc-abc4-057091c7c554	494e782c-2037-4ccc-a3db-a4fa9ce7866c	Furniture	sci-furniture-12f74810	0	0	2024-05-14 13:45:47.206+03	2024-05-14 13:45:47.206+03	0
+adff7155-5041-4a1d-8892-509595a3eae4	f9ddb9ff-41ed-46fd-8234-9b851cc5d0b8	Comics and Manga	sci-comics-and-manga-ac2851f2	0	9	2024-05-14 13:45:47.216+03	2024-05-14 13:45:47.216+03	0
+12ed9c2d-32b7-470a-86e8-ec8845750d7a	d03ceb1d-7568-45bb-87c9-dfeebd46a5be	floor lamp	sci-floor-lamp-a765f588	0	2	2024-05-14 13:45:47.22+03	2024-05-14 13:45:47.22+03	0
+da0123d3-d74d-4e8d-bfb8-7a897de79d4b	fef9dc63-cf47-4c17-aca0-0947230c0582	Tire	sci-tire-d9729820	0	3	2024-05-14 13:45:47.23+03	2024-05-14 13:45:47.23+03	0
+81baa384-4ac7-4109-99e2-d723e3963379	16a6514b-b088-4d4d-b796-eff3e144f9c9	Office Technology	sci-office-technology-0df1f71e	0	8	2024-05-14 13:45:47.243+03	2024-05-14 13:45:47.243+03	0
+ee3bc980-cc9c-49ab-bbff-59c496018507	3a2d74ae-208f-49d4-b3e0-b757a4825401	Shoe	sci-shoe-077e0c0d	0	2	2024-05-14 13:11:56.533+03	2024-05-14 13:11:56.533+03	0
+aaa0e648-2f45-4c5d-9387-c7d656a62901	71cfdae4-3481-4e62-992e-343daa87a243	Baby Steamer	sci-baby-steamer-2e9f7b41	0	11	2024-05-14 13:11:56.678+03	2024-05-14 13:11:56.678+03	0
+ecb6da62-608a-406d-b827-06a9a604460f	71cfdae4-3481-4e62-992e-343daa87a243	Baby Shampoo	sci-baby-shampoo-4807bed2	0	2	2024-05-14 13:11:56.678+03	2024-05-14 13:11:56.678+03	0
+18f9c680-9c2c-4b07-931e-965dd098ae3b	00047106-3139-4c17-9115-e9785f6484d9	Shirt	sci-shirt-a72e3c70	0	9	2024-05-14 13:11:56.67+03	2024-05-14 13:11:56.67+03	0
+53b2e013-a73c-4e42-bd3f-cf2f1418799e	dfd8a850-c768-4fcc-b45f-33a7884acd59	Transportation and Security	sci-transportation-and-security-b5ae5c6c	0	0	2024-05-14 13:11:56.688+03	2024-05-14 13:11:56.688+03	0
+e37a30a7-5fe6-481e-9f7f-7fb2a0146261	9cb5d682-5413-4c4a-bd69-ea0999a35be0	Curtain	sci-curtain-2c351cd4	0	3	2024-05-14 13:45:47.147+03	2024-05-14 13:45:47.147+03	0
+b690110e-660c-4d9b-905e-f95e5dab563c	899ad6e5-5202-4067-918e-52db97504692	Remote Control Vehicles	sci-remote-control-vehicles-f8a57a48	0	5	2024-05-14 13:45:47.182+03	2024-05-14 13:45:47.182+03	0
+3ffa7fb5-d2a3-4674-a106-612010582e9d	dfb84d78-cd11-4521-b25b-b39cfd54e4ef	Treadmill	sci-treadmill-c5ed29d9	0	1	2024-05-14 13:45:47.159+03	2024-05-14 13:45:47.159+03	0
+d87a0def-d0f7-40b9-ad3e-604bf77d4b94	494e782c-2037-4ccc-a3db-a4fa9ce7866c	Young room	sci-young-room-f848587f	0	7	2024-05-14 13:45:47.206+03	2024-05-14 13:45:47.206+03	0
+4299ea93-850e-4353-bb84-640781d452b2	899ad6e5-5202-4067-918e-52db97504692	LED Light	sci-led-light-0fec2c99	0	9	2024-05-14 13:45:47.184+03	2024-05-14 13:45:47.184+03	0
+2261e468-1262-4b5a-b7ff-d761925f50f2	99725bc3-d1b6-49f4-b6c7-e6586acd6709	Towels and Towel Set	sci-towels-and-towel-set-cfbe670c	0	1	2024-05-14 13:45:47.196+03	2024-05-14 13:45:47.196+03	0
+3e6c9e72-e079-44df-b2cb-ecbb1ca23e91	fef9dc63-cf47-4c17-aca0-0947230c0582	Sidecar	sci-sidecar-5a140847	0	11	2024-05-14 13:45:47.231+03	2024-05-14 13:45:47.231+03	0
+89672dc9-648d-491f-8220-e6c5ae7d4585	cbc18286-adfe-4f3f-a305-9e62e2837473	Decorative Accessory	sci-decorative-accessory-ea64087b	0	1	2024-05-14 13:45:47.234+03	2024-05-14 13:45:47.234+03	0
+712665e4-2ef5-4e9f-be17-3bd4b4bf1540	3a2d74ae-208f-49d4-b3e0-b757a4825401	Overalls	sci-overalls-d22699dd	0	5	2024-05-14 13:11:56.534+03	2024-05-14 13:11:56.534+03	0
+e0e0d33c-bbf5-4201-aca6-cff4b5411623	16a6514b-b088-4d4d-b796-eff3e144f9c9	Copy paper	sci-copy-paper-64c88302	0	3	2024-05-14 13:45:47.243+03	2024-05-14 13:45:47.243+03	0
+b2a9df7e-8765-4ed2-b1c0-4c90d0ee84af	c14bfcd7-85ee-466f-8a75-6008d8e3e70f	Lightbulb	sci-lightbulb-1193efdb	0	6	2024-05-14 13:45:47.239+03	2024-05-14 13:45:47.239+03	0
+16602f01-fef8-4cda-8749-3ac3059fe61b	00047106-3139-4c17-9115-e9785f6484d9	T-Shirt & Tank Top	sci-t-shirt--tank-top-d95571cc	0	5	2024-05-14 13:11:56.669+03	2024-05-14 13:11:56.669+03	0
+a29b7612-0785-482d-87ca-e4e705856ba9	00047106-3139-4c17-9115-e9785f6484d9	Bicycle	sci-bicycle-b98ebe19	0	14	2024-05-14 13:11:56.671+03	2024-05-14 13:11:56.671+03	0
+3ee11ae5-509f-4b19-8629-cfdc968dc7cd	00047106-3139-4c17-9115-e9785f6484d9	Spikes	sci-spikes-1fa7aac7	0	18	2024-05-14 13:11:56.672+03	2024-05-14 13:11:56.672+03	0
+df07bfc4-a204-4cb2-bd30-bbbdd72f1f20	71cfdae4-3481-4e62-992e-343daa87a243	Baby Thermometer	sci-baby-thermometer-643cba2a	0	12	2024-05-14 13:11:56.678+03	2024-05-14 13:11:56.678+03	0
+399c7958-6d13-419c-a802-e402d91cec81	023938ff-d71e-4632-a26e-e0f8d6e880b9	Outdoor Bag	sci-outdoor-bag-7f6f4127	0	13	2024-05-12 22:47:30.313+03	2024-05-12 22:47:30.313+03	0
+b6384d0a-0961-4d6d-b913-b7fd412fbe73	528394a5-f619-4fa0-a4ad-051b02a68b3a	Sneakers	sci-sneakers-e7911cb2	0	3	2024-05-14 13:11:56.645+03	2024-05-14 13:11:56.645+03	0
+41f419b0-6977-4d85-8c62-e20eb74cedaf	f9ddb9ff-41ed-46fd-8234-9b851cc5d0b8	Personal Development & Psychology Books	sci-personal-development-psychology-books-6c9b59b8	0	4	2024-05-14 13:45:47.216+03	2024-05-14 13:45:47.216+03	0
+954ecd0f-f246-4fef-a72e-d43038c33fc9	fef9dc63-cf47-4c17-aca0-0947230c0582	Vehicle Smell	sci-vehicle-smell-d77a8b3f	0	7	2024-05-14 13:45:47.23+03	2024-05-14 13:45:47.23+03	0
+30622f22-b8eb-4c69-9be6-3a20c80f5ae8	c14bfcd7-85ee-466f-8a75-6008d8e3e70f	screwing	sci-screwing-98625651	0	7	2024-05-14 13:45:47.239+03	2024-05-14 13:45:47.239+03	0
+7e3ada23-250e-4a8c-8183-c517a4147ead	16a6514b-b088-4d4d-b796-eff3e144f9c9	Notebook	sci-notebook-43ab0cbd	0	1	2024-05-14 13:45:47.243+03	2024-05-14 13:45:47.243+03	0
+f37f34ba-273c-413b-b9c8-73c490f2d741	00047106-3139-4c17-9115-e9785f6484d9	Tracksuit	sci-tracksuit-fb716fad	0	3	2024-05-14 13:11:56.669+03	2024-05-14 13:11:56.669+03	0
+8d756b96-2695-49bb-ac91-e518503214c7	3a2d74ae-208f-49d4-b3e0-b757a4825401	T-Shirt & Tank Top	sci-t-shirt--tank-top-751279df	0	7	2024-05-14 13:11:56.534+03	2024-05-14 13:11:56.534+03	0
+2a82d7a5-c286-4125-ab30-ad1785160b4e	dfd8a850-c768-4fcc-b45f-33a7884acd59	Mom's lap	sci-mom's-lap-9c7ad756	0	3	2024-05-14 13:11:56.688+03	2024-05-14 13:11:56.688+03	0
+64388989-acbc-4737-a70e-f0a31612000c	71cfdae4-3481-4e62-992e-343daa87a243	Baby Care	sci-baby-care-55cf7d0f	0	0	2024-05-14 13:11:56.678+03	2024-05-14 13:11:56.678+03	0
+5d6b46d3-6662-4fa4-9f19-07e11d090c4a	71cfdae4-3481-4e62-992e-343daa87a243	Baby Oil	sci-baby-oil-e85a80dc	0	10	2024-05-14 13:11:56.678+03	2024-05-14 13:11:56.678+03	0
+a4c305ea-087e-4e31-9a38-94f04b7fc8e4	dfb84d78-cd11-4521-b25b-b39cfd54e4ef	Pilates ball	sci-pilates-ball-18b3da3f	0	7	2024-05-14 13:45:47.162+03	2024-05-14 13:45:47.162+03	0
+8c7d4a9b-911d-4ebc-a518-8f0d3cef96be	ad272dcd-9924-427b-be6f-4b5148614eb6	Educational Toys	sci-educational-toys-8478163a	0	1	2024-05-14 13:11:56.698+03	2024-05-14 13:11:56.698+03	0
+5711781f-c31b-4aef-b05d-1d24163cf9c3	9cb5d682-5413-4c4a-bd69-ea0999a35be0	Throw Pillow and Case	sci-throw-pillow-and-case-768d6370	0	6	2024-05-14 13:45:47.148+03	2024-05-14 13:45:47.148+03	0
+b415b82b-fe41-4106-82c8-5dbd36bd352e	99725bc3-d1b6-49f4-b6c7-e6586acd6709	Men's Bathrobe	sci-men's-bathrobe-dadad94b	0	6	2024-05-14 13:45:47.196+03	2024-05-14 13:45:47.196+03	0
+f711ad18-1c79-4b27-af69-b4d62eb8498f	494e782c-2037-4ccc-a3db-a4fa9ce7866c	Dining room	sci-dining-room-dcb3ab8a	0	5	2024-05-14 13:45:47.206+03	2024-05-14 13:45:47.206+03	0
+7e84a516-3cc9-44db-8e30-485d5f9336e0	494e782c-2037-4ccc-a3db-a4fa9ce7866c	Chair	sci-chair-f6c90e3a	0	14	2024-05-14 13:45:47.209+03	2024-05-14 13:45:47.209+03	0
+57ebc3e1-9463-4666-b4ae-3eb24878645f	cbc18286-adfe-4f3f-a305-9e62e2837473	Room Fragrance	sci-room-fragrance-8da47199	0	5	2024-05-14 13:45:47.235+03	2024-05-14 13:45:47.235+03	0
+ac708682-7738-497b-a290-c3c155ca93bf	fef9dc63-cf47-4c17-aca0-0947230c0582	Motorcycle Gloves	sci-motorcycle-gloves-ff3ac4af	0	8	2024-05-14 13:45:47.23+03	2024-05-14 13:45:47.23+03	0
+beaa9a2c-01d0-40c4-8519-ba84677e97bf	f9ddb9ff-41ed-46fd-8234-9b851cc5d0b8	Child Care Books	sci-child-care-books-5fef5f16	0	5	2024-05-14 13:45:47.216+03	2024-05-14 13:45:47.216+03	0
+37292c4a-5e86-4bcd-90ad-77e6b60222e7	c14bfcd7-85ee-466f-8a75-6008d8e3e70f	Bathroom Building Materials	sci-bathroom-building-materials-d8efa9b8	0	1	2024-05-14 13:45:47.238+03	2024-05-14 13:45:47.238+03	0
+fc56798b-893a-461c-83c5-379140cdbb15	16a6514b-b088-4d4d-b796-eff3e144f9c9	Stationary	sci-stationary-3095c701	0	0	2024-05-14 13:45:47.243+03	2024-05-14 13:45:47.243+03	0
+f5585725-6b18-43b2-a032-53ad1dadb8fa	3a2d74ae-208f-49d4-b3e0-b757a4825401	Newborn Clothes	sci-newborn-clothes-a37dbdf1	0	4	2024-05-14 13:11:56.533+03	2024-05-14 13:11:56.533+03	0
+08369b78-bc11-46a2-b378-016f65ac86b1	00047106-3139-4c17-9115-e9785f6484d9	Controlled car	sci-controlled-car-0c169a17	0	13	2024-05-14 13:11:56.671+03	2024-05-14 13:11:56.671+03	0
+d5654af7-7e9a-4022-8c8e-70987b3bdfbd	71cfdae4-3481-4e62-992e-343daa87a243	Cream & Oils	sci-cream--oils-064af18c	0	3	2024-05-14 13:11:56.678+03	2024-05-14 13:11:56.678+03	0
+99e9dfe2-2750-4adb-82ac-f5971cb8875a	00047106-3139-4c17-9115-e9785f6484d9	Sneakers	sci-sneakers-b1352bd3	0	2	2024-05-14 13:11:56.669+03	2024-05-14 13:11:56.669+03	0
+cabfbc4f-dd92-452f-95c4-cdbdf1cf2dbd	dfd8a850-c768-4fcc-b45f-33a7884acd59	Kangaroo	sci-kangaroo-9424e679	0	8	2024-05-14 13:11:56.689+03	2024-05-14 13:11:56.689+03	0
+13b5773a-5d07-4334-ae95-6a162ea1f59a	ad272dcd-9924-427b-be6f-4b5148614eb6	Toy car	sci-toy-car-454ffedf	0	2	2024-05-14 13:11:56.698+03	2024-05-14 13:11:56.698+03	0
+9cb84cab-a830-41de-9641-476a4e1a0ef5	9cb5d682-5413-4c4a-bd69-ea0999a35be0	Duvet	sci-duvet-da221741	0	11	2024-05-14 13:45:47.149+03	2024-05-14 13:45:47.149+03	0
+7ca1ff6e-e714-4eb0-9e8d-57e906158684	fef9dc63-cf47-4c17-aca0-0947230c0582	Armrest & Armrest	sci-armrest-armrest-f2f59c05	0	5	2024-05-14 13:45:47.23+03	2024-05-14 13:45:47.23+03	0
+7d7a7f21-fa2d-418e-95e4-98a242e4d164	f9ddb9ff-41ed-46fd-8234-9b851cc5d0b8	Exam Preparation Books	sci-exam-preparation-books-c22876a5	0	1	2024-05-14 13:45:47.216+03	2024-05-14 13:45:47.216+03	0
+65906f5c-a181-4a75-bc1b-597af6ed0696	cbc18286-adfe-4f3f-a305-9e62e2837473	Art	sci-art-6793de22	0	6	2024-05-14 13:45:47.235+03	2024-05-14 13:45:47.235+03	0
+4c0047bd-f877-486b-9885-000f5b7e96b2	16a6514b-b088-4d4d-b796-eff3e144f9c9	Paint Set	sci-paint-set-842d323a	0	5	2024-05-14 13:45:47.243+03	2024-05-14 13:45:47.243+03	0
+d95cd3b9-2c08-4938-90f8-943b237f91ce	c14bfcd7-85ee-466f-8a75-6008d8e3e70f	Construction market	sci-construction-market-302fe187	0	0	2024-05-14 13:45:47.238+03	2024-05-14 13:45:47.238+03	0
+0a448e7a-6909-42d8-b873-d1b70236bdb5	3a2d74ae-208f-49d4-b3e0-b757a4825401	Baby Sets	sci-baby-sets-e77b26fe	0	1	2024-05-14 13:11:56.533+03	2024-05-14 13:11:56.533+03	0
+992bcafe-7ccc-4da5-8245-361d44a3c40f	00047106-3139-4c17-9115-e9785f6484d9	Boy	sci-boy-f54134ff	0	0	2024-05-14 13:11:56.668+03	2024-05-14 13:11:56.668+03	0
+624e6a6d-7951-46c2-92a9-7e0d3452fd61	71cfdae4-3481-4e62-992e-343daa87a243	wet wipes	sci-wet-wipes-2bff7f01	0	8	2024-05-14 13:11:56.678+03	2024-05-14 13:11:56.678+03	0
+1c7ba23a-f688-4725-9542-7bc27f5dd00e	00047106-3139-4c17-9115-e9785f6484d9	Boots	sci-boots-66ac7dd0	0	17	2024-05-14 13:11:56.672+03	2024-05-14 13:11:56.672+03	0
+f99de2c1-59bd-453f-ae93-eea159bfa735	ad272dcd-9924-427b-be6f-4b5148614eb6	Control Toy	sci-control-toy-255d07d7	0	5	2024-05-14 13:11:56.698+03	2024-05-14 13:11:56.698+03	0
+6e955083-cbbc-4b21-899d-fb589538090d	dfd8a850-c768-4fcc-b45f-33a7884acd59	Carrycot & Kangaroo	sci-carrycot--kangaroo-b8860768	0	4	2024-05-14 13:11:56.688+03	2024-05-14 13:11:56.688+03	0
+b4dea0ed-cbca-4e1f-8586-0e60b605c2fe	9cb5d682-5413-4c4a-bd69-ea0999a35be0	Bedspread	sci-bedspread-4c5d99ca	0	9	2024-05-14 13:45:47.149+03	2024-05-14 13:45:47.149+03	0
+64a287b8-f2ac-4d48-9623-f145ab084d89	494e782c-2037-4ccc-a3db-a4fa9ce7866c	Kitchen countertops	sci-kitchen-countertops-a61d00d4	0	11	2024-05-14 13:45:47.208+03	2024-05-14 13:45:47.208+03	0
+fdd64546-a320-4922-8ce7-111375ccd59e	f9ddb9ff-41ed-46fd-8234-9b851cc5d0b8	E-Books	sci-e-books-96999397	0	7	2024-05-14 13:45:47.216+03	2024-05-14 13:45:47.216+03	0
+58998eae-68c5-4ad8-87dc-179e530a0cf6	494e782c-2037-4ccc-a3db-a4fa9ce7866c	Zygon	sci-zygon-acc76910	0	15	2024-05-14 13:45:47.209+03	2024-05-14 13:45:47.209+03	0
+f71a0251-e5cd-4f83-9ea7-4c4b2d4c3a4c	fef9dc63-cf47-4c17-aca0-0947230c0582	Sunshade & Curtain	sci-sunshade-curtain-a6963520	0	6	2024-05-14 13:45:47.23+03	2024-05-14 13:45:47.23+03	0
+8a622233-74fe-4dc6-8f5b-145f853475d2	cbc18286-adfe-4f3f-a305-9e62e2837473	Table	sci-table-857907b2	0	2	2024-05-14 13:45:47.234+03	2024-05-14 13:45:47.234+03	0
+3fde9a13-a01b-4935-8058-97f04c47e4b5	c14bfcd7-85ee-466f-8a75-6008d8e3e70f	Hardware Products	sci-hardware-products-91da29a8	0	3	2024-05-14 13:45:47.239+03	2024-05-14 13:45:47.239+03	0
+787d1246-247c-4aea-b4ca-da5c891dfa05	16a6514b-b088-4d4d-b796-eff3e144f9c9	Desktop Gadgets	sci-desktop-gadgets-dca8f99f	0	7	2024-05-14 13:45:47.243+03	2024-05-14 13:45:47.243+03	0
+38346728-0c82-4049-b429-ef0f06704218	d688b55e-fdf1-4499-bba0-681240d9fef2	Sneakers	sci-sneakers-c78930e1	0	0	2024-05-09 12:22:57.499+03	2024-05-09 12:22:57.499+03	0
+79ed2fa9-3cbe-4d0e-8fae-289ada96627e	783b21a4-72f4-4adb-9e20-2f86f1a410dc	Denim Jacket	sci-denim-jacket-42bb56a7	0	4	2024-05-09 15:45:00.934+03	2024-05-09 15:45:00.934+03	0
+401f0a07-1698-4640-b3c3-72a5fea8a737	783b21a4-72f4-4adb-9e20-2f86f1a410dc	Coat	sci-coat-0842351e	0	16	2024-05-09 15:45:00.934+03	2024-05-09 15:45:00.934+03	0
+b52f6a49-add8-418b-9e6b-a5977e872e94	a0faa5fc-04f8-470c-99a4-25e19bcf6813	Shoulder bag	sci-shoulder-bag-11de6d92	0	1	2024-05-09 15:49:47.65+03	2024-05-09 15:49:47.65+03	0
+07a686e0-094f-4150-9dbf-d2dbfb4a004d	a0faa5fc-04f8-470c-99a4-25e19bcf6813	Messenger Bag	sci-messenger-bag-e91cc0de	0	5	2024-05-09 15:49:47.65+03	2024-05-09 15:49:47.65+03	0
+4ee21bab-99db-45a9-a5d0-ed540d1ac1db	a710c4c3-fbe3-45c6-9a7b-c0c3de43317a	bustier	sci-bustier-82a075be	0	7	2024-05-09 15:51:03.4+03	2024-05-09 15:51:03.4+03	0
+a159dc0c-b533-459c-aec2-c8a3efdc4af0	dfb84d78-cd11-4521-b25b-b39cfd54e4ef	Thermoses	sci-thermoses-64b813c7	0	9	2024-05-14 13:45:47.162+03	2024-05-14 13:45:47.162+03	0
+977abbb1-cc0e-4294-8de3-22052979c9a7	0f77d0aa-b07b-43a3-97f4-4bb520195683	Gaming PC	sci-gaming-pc-2a07854a	0	6	2024-05-14 14:03:31.482+03	2024-05-14 14:03:31.482+03	0
+2e134cd4-8302-4028-a4fa-5025942de169	494e782c-2037-4ccc-a3db-a4fa9ce7866c	Garden furniture	sci-garden-furniture-4f94285a	0	3	2024-05-14 13:45:47.206+03	2024-05-14 13:45:47.206+03	0
+e5fc3721-090d-4249-9c17-e9d6e2219350	494e782c-2037-4ccc-a3db-a4fa9ce7866c	wardrobe	sci-wardrobe-588e1102	0	13	2024-05-14 13:45:47.209+03	2024-05-14 13:45:47.209+03	0
+330c7a4e-168d-4cbc-9ece-4045d8236f5a	f9ddb9ff-41ed-46fd-8234-9b851cc5d0b8	Book	sci-book-0a7dbdf7	0	0	2024-05-14 13:45:47.216+03	2024-05-14 13:45:47.216+03	0
+6e893045-3a57-455e-a4bb-9622e58c5d08	fef9dc63-cf47-4c17-aca0-0947230c0582	Motorcycle Boat	sci-motorcycle-boat-e00e92d0	0	10	2024-05-14 13:45:47.23+03	2024-05-14 13:45:47.23+03	0
+d169fedd-6d17-41c4-a92d-9f8b8be0c842	cbc18286-adfe-4f3f-a305-9e62e2837473	Home decoration	sci-home-decoration-37f4f861	0	0	2024-05-14 13:45:47.234+03	2024-05-14 13:45:47.234+03	0
+a25b9955-dc81-42dc-a9ac-be00c46564ba	c14bfcd7-85ee-466f-8a75-6008d8e3e70f	Paint	sci-paint-cb654737	0	4	2024-05-14 13:45:47.239+03	2024-05-14 13:45:47.239+03	0
+180d872c-afb3-4471-81c3-d8df65f96520	16a6514b-b088-4d4d-b796-eff3e144f9c9	Filing Archiving	sci-filing-archiving-33ae45fb	0	6	2024-05-14 13:45:47.243+03	2024-05-14 13:45:47.243+03	0
+c3abe59c-70d0-40b6-94e6-685155467cab	55349c76-ab69-4c86-b95f-ab266b4a5715	Vertical Vacuum Cleaner	sci-vertical-vacuum-cleaner-d8729740	0	3	2024-05-14 14:03:31.319+03	2024-05-14 14:03:31.319+03	0
+9251954b-3f87-4002-a57e-06ea1887cdcf	55349c76-ab69-4c86-b95f-ab266b4a5715	Small Appliances	sci-small-appliances-e8b2885b	0	0	2024-05-14 14:03:31.319+03	2024-05-14 14:03:31.319+03	0
+ba20e1b6-4dea-40c3-b675-f7c7169ec696	55349c76-ab69-4c86-b95f-ab266b4a5715	Iron	sci-iron-64500984	0	4	2024-05-14 14:03:31.319+03	2024-05-14 14:03:31.319+03	0
+a7bc3616-4f94-4a07-8e5c-15412a9f87fb	55349c76-ab69-4c86-b95f-ab266b4a5715	Coffee machine	sci-coffee-machine-762cc8ed	0	5	2024-05-14 14:03:31.319+03	2024-05-14 14:03:31.319+03	0
+6088054d-a032-4af3-9d8d-70249712236c	55349c76-ab69-4c86-b95f-ab266b4a5715	Tea machine	sci-tea-machine-e3bc4013	0	6	2024-05-14 14:03:31.319+03	2024-05-14 14:03:31.319+03	0
+ab040427-d8ae-4f21-a037-c2a38cc5c24d	55349c76-ab69-4c86-b95f-ab266b4a5715	Blender Set	sci-blender-set-0196677e	0	7	2024-05-14 14:03:31.319+03	2024-05-14 14:03:31.319+03	0
+ec708cf3-f2c7-4640-b6be-be0534d8ac41	55349c76-ab69-4c86-b95f-ab266b4a5715	Toast machine	sci-toast-machine-da9325e6	0	8	2024-05-14 14:03:31.319+03	2024-05-14 14:03:31.319+03	0
+d8a9c7a6-8c62-4576-a766-c86991a47a3d	55349c76-ab69-4c86-b95f-ab266b4a5715	Chopper & Rondo	sci-chopper-rondo-6ebab537	0	9	2024-05-14 14:03:31.319+03	2024-05-14 14:03:31.319+03	0
+f057868d-2d98-4d64-abaa-fc8219911fe7	55349c76-ab69-4c86-b95f-ab266b4a5715	Kettle & Kettle	sci-kettle-kettle-81527d51	0	10	2024-05-14 14:03:31.319+03	2024-05-14 14:03:31.319+03	0
+444773a3-a7c6-4092-9e63-4b152cf47571	55349c76-ab69-4c86-b95f-ab266b4a5715	Mixer & Mixer Set	sci-mixer-mixer-set-f1733dba	0	11	2024-05-14 14:03:31.319+03	2024-05-14 14:03:31.319+03	0
+1314f2e5-0b86-43da-8b29-1f802be1dd8c	55349c76-ab69-4c86-b95f-ab266b4a5715	Airfryer & Fryer	sci-airfryer-fryer-db16177e	0	12	2024-05-14 14:03:31.319+03	2024-05-14 14:03:31.319+03	0
+ec58f337-ffdf-49e5-9fba-bafb5a4b6ddf	1f5fba9d-513b-459f-942a-b38318e7dbd6	Android Mobile Phones	sci-android-mobile-phones-c8e7ec28	0	2	2024-05-14 14:03:31.436+03	2024-05-14 14:03:31.436+03	0
+575a1b78-2757-485b-931d-60ed9b9c626f	1f5fba9d-513b-459f-942a-b38318e7dbd6	In-Car Phone Holder	sci-in-car-phone-holder-e68f8a14	0	7	2024-05-14 14:03:31.436+03	2024-05-14 14:03:31.436+03	0
+957904ee-fa01-4bc4-b369-c366cb25364c	a91c1c85-1e5f-47fe-83b4-1c5e7c60d7dc	Built-in Hood	sci-built-in-hood-b08c123d	0	11	2024-05-14 14:03:31.471+03	2024-05-14 14:03:31.471+03	0
+f21642bf-940b-46f1-b121-56e5beb7f57e	0f77d0aa-b07b-43a3-97f4-4bb520195683	Gaming Chair	sci-gaming-chair-4c3100bf	0	9	2024-05-14 14:03:31.482+03	2024-05-14 14:03:31.482+03	0
+be0488ed-b290-42c3-bd8a-23ef278dbdd1	73764eab-5432-4068-8dfe-bebcdd03e726	Fan	sci-fan-109aebb6	0	4	2024-05-14 14:03:31.488+03	2024-05-14 14:03:31.488+03	0
+9a21a5db-57e3-42b6-a997-5aef24ca4f59	391ce7d0-48e3-4b5f-82b7-6a3019205949	Instant Camera	sci-instant-camera-6b73ce2e	0	4	2024-05-14 14:03:31.485+03	2024-05-14 14:03:31.485+03	0
+b3fa33c7-5bf5-43b8-9a5a-04f3080d7fac	60849870-ad1d-4f31-aa0a-ff2d8ec9b912	Network & Modem	sci-network-modem-51f66e5a	0	6	2024-05-14 14:03:31.493+03	2024-05-14 14:03:31.493+03	0
+8644df0d-35da-4805-8066-ccf5fc4b65bb	40058e28-1ad7-4620-ab45-1628f2142019	Speaker	sci-speaker-a95a93d7	0	9	2024-05-14 14:03:31.551+03	2024-05-14 14:03:31.551+03	0
+5f48040f-0e8b-4d7f-8109-5b0053bf238b	a16567ec-c620-47c8-a104-c30a4027aae3	Hair Removal Devices	sci-hair-removal-devices-8c9ebc47	0	6	2024-05-14 14:03:31.498+03	2024-05-14 14:03:31.498+03	0
+22f883d0-e3b9-484d-9598-f3d1b76239e1	40058e28-1ad7-4620-ab45-1628f2142019	Surge Protected Sockets	sci-surge-protected-sockets-25257f06	0	14	2024-05-14 14:03:31.552+03	2024-05-14 14:03:31.552+03	0
+e9ddd05e-0ee8-47e2-a6dc-5d804cc52faa	661c41d4-27f2-47ec-b3a4-d9be12e2f638	underwear	sci-underwear-cd926272	0	4	2024-05-09 12:55:05.798+03	2024-05-09 12:55:05.798+03	0
+e80f5296-ecb3-40eb-9b94-30e4d31c51b3	a0faa5fc-04f8-470c-99a4-25e19bcf6813	Canvas Bag	sci-canvas-bag-ece6a29f	0	7	2024-05-09 15:49:47.65+03	2024-05-09 15:49:47.65+03	0
+d4d8492b-f2a7-488a-b108-b3b8a21057ea	899ad6e5-5202-4067-918e-52db97504692	Playgroups	sci-playgroups-9998adb4	0	7	2024-05-14 13:45:47.184+03	2024-05-14 13:45:47.184+03	0
+d364e373-bf95-48fa-b486-307205af0320	99725bc3-d1b6-49f4-b6c7-e6586acd6709	Dressing gown	sci-dressing-gown-a4a0794b	0	2	2024-05-14 13:45:47.196+03	2024-05-14 13:45:47.196+03	0
+f7fd7e62-2e1b-4bbf-bd6c-5e71da8326f2	494e782c-2037-4ccc-a3db-a4fa9ce7866c	Study room	sci-study-room-023ff987	0	4	2024-05-14 13:45:47.206+03	2024-05-14 13:45:47.206+03	0
+f237c0ca-c850-4602-822e-c9834f888594	1f5fba9d-513b-459f-942a-b38318e7dbd6	Phone Cases	sci-phone-cases-bbcbbd60	0	4	2024-05-14 14:03:31.436+03	2024-05-14 14:03:31.436+03	0
+032b6ba9-c5e8-4c51-a106-8d9f0b2275ee	fef9dc63-cf47-4c17-aca0-0947230c0582	Auto Accessory	sci-auto-accessory-4c89cbea	0	1	2024-05-14 13:45:47.229+03	2024-05-14 13:45:47.229+03	0
+c5e1de10-40fe-46f5-87a8-1880e20d87c3	d03ceb1d-7568-45bb-87c9-dfeebd46a5be	Chandelier	sci-chandelier-1dbbc66d	0	1	2024-05-14 13:45:47.22+03	2024-05-14 13:45:47.22+03	0
+927457dd-5b83-4a1c-9f8d-aa2ee3fc3bc6	1f5fba9d-513b-459f-942a-b38318e7dbd6	Mobile phone	sci-mobile-phone-16c15e90	0	1	2024-05-14 14:03:31.436+03	2024-05-14 14:03:31.436+03	0
+b8ecce1c-ae45-41c0-9f57-4da131f144a5	1f5fba9d-513b-459f-942a-b38318e7dbd6	iPhone Cases	sci-iphone-cases-d98e9762	0	8	2024-05-14 14:03:31.436+03	2024-05-14 14:03:31.436+03	0
+1300991e-f586-4ae3-ad86-dbcb858ccb1d	a91c1c85-1e5f-47fe-83b4-1c5e7c60d7dc	Mini & Midi Oven	sci-mini-midi-oven-3a6f7738	0	10	2024-05-14 14:03:31.471+03	2024-05-14 14:03:31.471+03	0
+bed0e181-b143-42ab-8ffb-8bfd87720f3e	a16567ec-c620-47c8-a104-c30a4027aae3	Shaving Machine	sci-shaving-machine-e04c9f3d	0	4	2024-05-14 14:03:31.498+03	2024-05-14 14:03:31.498+03	0
+8866049d-30f2-4d2c-bf10-72b3cdc76929	60849870-ad1d-4f31-aa0a-ff2d8ec9b912	Computers	sci-computers-c9ac693d	0	1	2024-05-14 14:03:31.493+03	2024-05-14 14:03:31.493+03	0
+40ea4cc5-d952-4e46-b43c-3300809502fe	40058e28-1ad7-4620-ab45-1628f2142019	LNB	sci-lnb-01d4df7d	0	16	2024-05-14 14:03:31.552+03	2024-05-14 14:03:31.552+03	0
+88def0e4-a59f-4a96-9b74-e74b9d83caf4	a0faa5fc-04f8-470c-99a4-25e19bcf6813	portfolio	sci-portfolio-d75899ab	0	4	2024-05-09 15:49:47.65+03	2024-05-09 15:49:47.65+03	0
+33e65ed3-d0d5-4149-aa4b-def910134d43	899ad6e5-5202-4067-918e-52db97504692	Hobby Supplies	sci-hobby-supplies-2cacbc5e	0	4	2024-05-14 13:45:47.182+03	2024-05-14 13:45:47.182+03	0
+13d87206-91c8-45a9-a73f-6d89e0763f57	99725bc3-d1b6-49f4-b6c7-e6586acd6709	Loincloth	sci-loincloth-3e44ada6	0	7	2024-05-14 13:45:47.197+03	2024-05-14 13:45:47.197+03	0
+1058a8bd-8850-4975-9618-e751dc2bbe0d	a0faa5fc-04f8-470c-99a4-25e19bcf6813	Backpack	sci-backpack-e797b0a2	0	0	2024-05-09 15:49:47.65+03	2024-05-09 15:49:47.65+03	0
+cc111f02-b7ae-45ff-a296-6c0a0480db90	494e782c-2037-4ccc-a3db-a4fa9ce7866c	Seating Groups	sci-seating-groups-7c60ee06	0	6	2024-05-14 13:45:47.206+03	2024-05-14 13:45:47.206+03	0
+6aa98c66-925f-4708-b7eb-24f6f33a87f3	1f5fba9d-513b-459f-942a-b38318e7dbd6	Telephone	sci-telephone-454b831d	0	0	2024-05-14 14:03:31.436+03	2024-05-14 14:03:31.436+03	0
+62ef6e69-8f60-45ac-9548-df09e9e23436	a91c1c85-1e5f-47fe-83b4-1c5e7c60d7dc	Microwave oven	sci-microwave-oven-66fd557e	0	8	2024-05-14 14:03:31.471+03	2024-05-14 14:03:31.471+03	0
+267a6c93-2842-4180-bfaf-bcc64931952b	1f5fba9d-513b-459f-942a-b38318e7dbd6	Chargers	sci-chargers-5a0bad6c	0	5	2024-05-14 14:03:31.436+03	2024-05-14 14:03:31.436+03	0
+226ec78c-aae5-482e-a1c4-e2bcbf7e6a18	f9ddb9ff-41ed-46fd-8234-9b851cc5d0b8	Novel & Literature Books	sci-novel-literature-books-fdf31c36	0	3	2024-05-14 13:45:47.216+03	2024-05-14 13:45:47.216+03	0
+0eec0ecc-d6db-421d-bff5-df4d6c53d22e	391ce7d0-48e3-4b5f-82b7-6a3019205949	Camera	sci-camera-29b46c86	0	2	2024-05-14 14:03:31.485+03	2024-05-14 14:03:31.485+03	0
+6727fed8-5c01-4954-8970-84d2371daa11	73764eab-5432-4068-8dfe-bebcdd03e726	heaters	sci-heaters-f7978a94	0	3	2024-05-14 14:03:31.488+03	2024-05-14 14:03:31.488+03	0
+626c17e8-9244-4572-84e4-30f98d2aa729	0f77d0aa-b07b-43a3-97f4-4bb520195683	Special for Players	sci-special-for-players-cc3f39ee	0	0	2024-05-14 14:03:31.482+03	2024-05-14 14:03:31.482+03	0
+f6b38fa0-1742-4c94-a918-3371512d108c	cb5eebb4-2ec4-4b22-b87c-645a7ed734e7	Smart wristband	sci-smart-wristband-adf670aa	0	2	2024-05-14 14:03:31.476+03	2024-05-14 14:03:31.476+03	0
+716f0bcd-47ff-4fff-b5ad-5ef84e2890dd	f231e281-165e-45eb-b203-2861281c2a0e	Electronic Accessories	sci-electronic-accessories-1af1067d	0	0	2024-05-14 14:03:31.5+03	2024-05-14 14:03:31.5+03	0
+b3c73666-a2ad-4916-82e8-8054225bbe28	60849870-ad1d-4f31-aa0a-ff2d8ec9b912	Monitor	sci-monitor-c2c2cbf9	0	4	2024-05-14 14:03:31.493+03	2024-05-14 14:03:31.493+03	0
+9a22249a-72e9-4106-bccf-e40f9c85a5d3	40058e28-1ad7-4620-ab45-1628f2142019	TV Remotes	sci-tv-remotes-62d594d5	0	5	2024-05-14 14:03:31.551+03	2024-05-14 14:03:31.551+03	0
+018ef71c-d42d-4b25-88be-420154becb90	d8213269-6cbe-4fdd-958d-8a325768715c	Baby cradle	sci-baby-cradle-b039ded9	0	1	2024-05-14 13:11:56.614+03	2024-05-14 13:11:56.614+03	0
+2e8768a1-0dc3-45d8-a931-628f80629f94	ad272dcd-9924-427b-be6f-4b5148614eb6	Doll	sci-doll-f7757e63	0	3	2024-05-14 13:11:56.698+03	2024-05-14 13:11:56.698+03	0
+539e9aff-6976-4f4e-a0ca-312e6fcf6518	40058e28-1ad7-4620-ab45-1628f2142019	Receiver	sci-receiver-cd13e8f7	0	11	2024-05-14 14:03:31.552+03	2024-05-14 14:03:31.552+03	0
+822559b6-e6a3-4ee9-8aac-89c65c9b435a	a0faa5fc-04f8-470c-99a4-25e19bcf6813	Handbag	sci-handbag-d7a55ae5	0	6	2024-05-09 15:49:47.65+03	2024-05-09 15:49:47.65+03	0
+e74dfd1c-087b-4173-9a46-62f39dca589a	1f5fba9d-513b-459f-942a-b38318e7dbd6	iPhone iOS Mobile Phones	sci-iphone-ios-mobile-phones-c7096466	0	3	2024-05-14 14:03:31.436+03	2024-05-14 14:03:31.436+03	0
+02838738-e479-4002-9366-c3d8a774a305	1f5fba9d-513b-459f-942a-b38318e7dbd6	power bank	sci-power-bank-79234c63	0	6	2024-05-14 14:03:31.436+03	2024-05-14 14:03:31.436+03	0
+a9fba71d-54ee-43b4-840f-24f96c2d2c9c	1f5fba9d-513b-459f-942a-b38318e7dbd6	Headphones	sci-headphones-7c85620c	0	9	2024-05-14 14:03:31.436+03	2024-05-14 14:03:31.436+03	0
+9fc1e947-0feb-4a0b-b494-bce584a1e8fa	a91c1c85-1e5f-47fe-83b4-1c5e7c60d7dc	Aspirator	sci-aspirator-8508cca3	0	9	2024-05-14 14:03:31.471+03	2024-05-14 14:03:31.471+03	0
+9aa643cd-a701-47fa-8746-ef51942e3702	0f77d0aa-b07b-43a3-97f4-4bb520195683	Gaming Headset	sci-gaming-headset-a171d611	0	10	2024-05-14 14:03:31.482+03	2024-05-14 14:03:31.482+03	0
+f33e507a-db8d-4868-ba0d-15558e5cdd9f	391ce7d0-48e3-4b5f-82b7-6a3019205949	Action Camera	sci-action-camera-474a8e55	0	1	2024-05-14 14:03:31.485+03	2024-05-14 14:03:31.485+03	0
+8c815aac-70fe-4cbf-9a5e-3f7d684caa9f	73764eab-5432-4068-8dfe-bebcdd03e726	Air Conditioners & Heaters	sci-air-conditioners-heaters-3bb747cc	0	0	2024-05-14 14:03:31.488+03	2024-05-14 14:03:31.488+03	0
+59ce7fa9-aec1-4914-9c26-058b5d3e0e52	60849870-ad1d-4f31-aa0a-ff2d8ec9b912	Computer Components	sci-computer-components-a713520c	0	3	2024-05-14 14:03:31.493+03	2024-05-14 14:03:31.493+03	0
+45fbf09e-a1a9-42bd-90a0-6f643b0e96f6	60849870-ad1d-4f31-aa0a-ff2d8ec9b912	Children's Drawing Tablet	sci-children's-drawing-tablet-1a7ced2d	0	13	2024-05-14 14:03:31.495+03	2024-05-14 14:03:31.495+03	0
+08765fa5-e5ad-475e-8fdd-9b6795601a71	40058e28-1ad7-4620-ab45-1628f2142019	Earphones	sci-earphones-0adf60f1	0	10	2024-05-14 14:03:31.551+03	2024-05-14 14:03:31.551+03	0
+6803ed6f-28a0-4d07-860f-8aee63c84544	a16567ec-c620-47c8-a104-c30a4027aae3	Personal Care Appliances	sci-personal-care-appliances-956e6905	0	0	2024-05-14 14:03:31.498+03	2024-05-14 14:03:31.498+03	0
+d89c5154-f953-4017-a635-b8db7dd22952	40058e28-1ad7-4620-ab45-1628f2142019	HDMI Cable	sci-hdmi-cable-8190cfce	0	13	2024-05-14 14:03:31.552+03	2024-05-14 14:03:31.552+03	0
+f503092f-bf7b-4174-bc0b-12a8bfb971cb	a710c4c3-fbe3-45c6-9a7b-c0c3de43317a	Underwear Sets	sci-underwear-sets-2280b5b2	0	2	2024-05-09 15:51:03.4+03	2024-05-09 15:51:03.4+03	0
+4444c7c5-00c4-41b5-81be-076430979f85	55349c76-ab69-4c86-b95f-ab266b4a5715	Mop	sci-mop-d93e13e3	0	1	2024-05-14 14:03:31.319+03	2024-05-14 14:03:31.319+03	0
+d3aebf2e-dc15-42f8-b089-fc6cf65c5c03	a91c1c85-1e5f-47fe-83b4-1c5e7c60d7dc	Deep freeze	sci-deep-freeze-577ea33b	0	5	2024-05-14 14:03:31.471+03	2024-05-14 14:03:31.471+03	0
+3662288d-0049-45dc-96a5-c2481c7d9428	0f77d0aa-b07b-43a3-97f4-4bb520195683	Gaming Mouse	sci-gaming-mouse-2bdaa92b	0	11	2024-05-14 14:03:31.482+03	2024-05-14 14:03:31.482+03	0
+6f2388da-d0f3-4765-95d6-f02ccf55c7a7	60849870-ad1d-4f31-aa0a-ff2d8ec9b912	RAM	sci-ram-0fd96682	0	11	2024-05-14 14:03:31.494+03	2024-05-14 14:03:31.494+03	0
+af3a14b3-e285-4c4c-af7b-4874969adb7e	a16567ec-c620-47c8-a104-c30a4027aae3	Hair dryer	sci-hair-dryer-43b25fa7	0	3	2024-05-14 14:03:31.498+03	2024-05-14 14:03:31.498+03	0
+3961cc36-fc82-4b4c-a861-71abf122ff81	40058e28-1ad7-4620-ab45-1628f2142019	media player	sci-media-player-5e698619	0	8	2024-05-14 14:03:31.551+03	2024-05-14 14:03:31.551+03	0
+cbc82f7d-9f29-4c1d-8391-d8e734bb6a68	55349c76-ab69-4c86-b95f-ab266b4a5715	Robot Vacuum Cleaner	sci-robot-vacuum-cleaner-90e6536e	0	2	2024-05-14 14:03:31.319+03	2024-05-14 14:03:31.319+03	0
+405bdf64-07f3-4c6c-8781-c77fd10faf5c	a91c1c85-1e5f-47fe-83b4-1c5e7c60d7dc	Washing machine	sci-washing-machine-d95c0f49	0	2	2024-05-14 14:03:31.471+03	2024-05-14 14:03:31.471+03	0
+09537591-4b5b-411d-89c4-9cef4f664da6	0f77d0aa-b07b-43a3-97f4-4bb520195683	Gamer Keyboard	sci-gamer-keyboard-cbd57558	0	12	2024-05-14 14:03:31.482+03	2024-05-14 14:03:31.482+03	0
+4abbf034-5720-4577-b150-294183bcf3a5	391ce7d0-48e3-4b5f-82b7-6a3019205949	Digital Camera	sci-digital-camera-146e3004	0	5	2024-05-14 14:03:31.485+03	2024-05-14 14:03:31.485+03	0
+7689f70c-1c04-4d49-b391-0d1af745c5a9	40058e28-1ad7-4620-ab45-1628f2142019	Satellite	sci-satellite-e6875e3c	0	12	2024-05-14 14:03:31.552+03	2024-05-14 14:03:31.552+03	0
+b16137a8-b41d-43d9-a03b-41b79ac11b8c	40058e28-1ad7-4620-ab45-1628f2142019	TV Hanger	sci-tv-hanger-9dd32217	0	18	2024-05-14 14:03:31.552+03	2024-05-14 14:03:31.552+03	0
+ecd103e8-73a6-4732-87dc-61d2be5e7e1f	a16567ec-c620-47c8-a104-c30a4027aae3	Weight	sci-weight-19aa1159	0	5	2024-05-14 14:03:31.498+03	2024-05-14 14:03:31.498+03	0
+e74f35ae-8404-43a7-8573-f57181452947	60849870-ad1d-4f31-aa0a-ff2d8ec9b912	SSD	sci-ssd-274a8962	0	10	2024-05-14 14:03:31.494+03	2024-05-14 14:03:31.494+03	0
+a66c214a-da66-4dc9-bba8-f131d8e1b37e	d8213269-6cbe-4fdd-958d-8a325768715c	Baby Play Mats	sci-baby-play-mats-f5bb3560	0	8	2024-05-14 13:11:56.615+03	2024-05-14 13:11:56.615+03	0
+3a6370a0-c05e-47b6-9a8b-db61f9a34f50	9cb5d682-5413-4c4a-bd69-ea0999a35be0	Kitchen Towel	sci-kitchen-towel-f32df4ae	0	7	2024-05-14 13:45:47.148+03	2024-05-14 13:45:47.148+03	0
+276533ab-119d-4a48-b13b-9f54781ca8f8	899ad6e5-5202-4067-918e-52db97504692	party material	sci-party-material-0a218342	0	1	2024-05-14 13:45:47.181+03	2024-05-14 13:45:47.181+03	0
+14418976-b2bc-47d5-aefb-92eae5ae738d	99725bc3-d1b6-49f4-b6c7-e6586acd6709	Women's Bathrobe	sci-women's-bathrobe-e682acac	0	5	2024-05-14 13:45:47.196+03	2024-05-14 13:45:47.196+03	0
+7ab62a5b-c9f2-42ef-b927-b3578a13e7a9	a91c1c85-1e5f-47fe-83b4-1c5e7c60d7dc	Dryer	sci-dryer-bdfedf9a	0	4	2024-05-14 14:03:31.471+03	2024-05-14 14:03:31.471+03	0
+a249544d-cca4-46ce-ba9a-8180f2853e1c	0f77d0aa-b07b-43a3-97f4-4bb520195683	Player Monitors	sci-player-monitors-efaeadcb	0	8	2024-05-14 14:03:31.482+03	2024-05-14 14:03:31.482+03	0
+10282702-46ce-4cdb-832a-fb8324f7f434	391ce7d0-48e3-4b5f-82b7-6a3019205949	Photo & Camera	sci-photo-camera-ecbaedd6	0	0	2024-05-14 14:03:31.485+03	2024-05-14 14:03:31.485+03	0
+de51e934-4e7b-4ce6-bef2-20b13d73c6eb	f231e281-165e-45eb-b203-2861281c2a0e	Data Storage	sci-data-storage-ea3662a2	0	4	2024-05-14 14:03:31.5+03	2024-05-14 14:03:31.5+03	0
+795f083d-112a-44c1-bbe5-6a5417387578	73764eab-5432-4068-8dfe-bebcdd03e726	Air conditioning	sci-air-conditioning-706b390d	0	1	2024-05-14 14:03:31.488+03	2024-05-14 14:03:31.488+03	0
+8026d349-5016-41de-8d35-8b509df5ed51	60849870-ad1d-4f31-aa0a-ff2d8ec9b912	Mouse	sci-mouse-5a6e8f76	0	8	2024-05-14 14:03:31.493+03	2024-05-14 14:03:31.493+03	0
+995d5619-650c-47cd-9361-f22a7abc446b	40058e28-1ad7-4620-ab45-1628f2142019	QLED TV	sci-qled-tv-459b3491	0	3	2024-05-14 14:03:31.551+03	2024-05-14 14:03:31.551+03	0
+d058c355-2076-4b1d-8285-91012568da81	a91c1c85-1e5f-47fe-83b4-1c5e7c60d7dc	Household appliances	sci-household-appliances-a29767c1	0	0	2024-05-14 14:03:31.471+03	2024-05-14 14:03:31.471+03	0
+d73ddbea-49bc-4bb6-8f20-30ebb30dd5e1	0f77d0aa-b07b-43a3-97f4-4bb520195683	Player Equipment	sci-player-equipment-80ba02de	0	7	2024-05-14 14:03:31.482+03	2024-05-14 14:03:31.482+03	0
+e9f9659a-823f-412a-942c-db6d81e7d1b1	391ce7d0-48e3-4b5f-82b7-6a3019205949	Memory card	sci-memory-card-fd831143	0	7	2024-05-14 14:03:31.485+03	2024-05-14 14:03:31.485+03	0
+968ca575-9a79-451b-a059-34249dfb46c8	73764eab-5432-4068-8dfe-bebcdd03e726	Air Purifier	sci-air-purifier-6a8efb8e	0	7	2024-05-14 14:03:31.489+03	2024-05-14 14:03:31.489+03	0
+46aa4210-4b6f-49ab-8f32-9afcbc2e92a2	60849870-ad1d-4f31-aa0a-ff2d8ec9b912	Keyboard	sci-keyboard-92fa7be0	0	7	2024-05-14 14:03:31.493+03	2024-05-14 14:03:31.493+03	0
+907e670e-62ee-4e64-b511-2e39f1674393	40058e28-1ad7-4620-ab45-1628f2142019	Wired Speaker	sci-wired-speaker-06600dc1	0	19	2024-05-14 14:03:31.552+03	2024-05-14 14:03:31.552+03	0
+7fa7d376-43b9-490c-bee3-53c43fdd406b	40058e28-1ad7-4620-ab45-1628f2142019	sound bar	sci-sound-bar-ee35791e	0	6	2024-05-14 14:03:31.551+03	2024-05-14 14:03:31.551+03	0
+22af3f7e-7b37-4709-8d25-5f5bf64f1eec	a16567ec-c620-47c8-a104-c30a4027aae3	IPL Laser Hair Removal	sci-ipl-laser-hair-removal-344fdbc5	0	7	2024-05-14 14:03:31.498+03	2024-05-14 14:03:31.498+03	0
+d448d263-2b4d-4f98-9296-28a91690bfb4	cb5eebb4-2ec4-4b22-b87c-645a7ed734e7	Smart watch	sci-smart-watch-83be6c31	0	1	2024-05-14 14:03:31.476+03	2024-05-14 14:03:31.476+03	0
+9a11b48d-337d-4994-aa2c-a71e7fc3b3ce	0f77d0aa-b07b-43a3-97f4-4bb520195683	Nintendo	sci-nintendo-c1237d0c	0	3	2024-05-14 14:03:31.482+03	2024-05-14 14:03:31.482+03	0
+65f6a945-1daa-4761-b293-7f6174bda777	391ce7d0-48e3-4b5f-82b7-6a3019205949	Camera Lenses	sci-camera-lenses-d6586c4c	0	6	2024-05-14 14:03:31.485+03	2024-05-14 14:03:31.485+03	0
+8aebbe7a-a6b0-4382-a9c0-3c8d726406fa	a91c1c85-1e5f-47fe-83b4-1c5e7c60d7dc	combi boiler	sci-combi-boiler-278e1efa	0	7	2024-05-14 14:03:31.471+03	2024-05-14 14:03:31.471+03	0
+7be0a8e6-b2b6-4351-a904-ca9c23ad0520	60849870-ad1d-4f31-aa0a-ff2d8ec9b912	Graphics Tablet	sci-graphics-tablet-40a2428d	0	9	2024-05-14 14:03:31.494+03	2024-05-14 14:03:31.494+03	0
+dfd0985f-f8e7-4ca7-ab6c-f73ac2ff115b	a16567ec-c620-47c8-a104-c30a4027aae3	Hair Straightener	sci-hair-straightener-24fafb51	0	1	2024-05-14 14:03:31.498+03	2024-05-14 14:03:31.498+03	0
+73ecfa62-b840-4050-8af4-8687f059d8c2	40058e28-1ad7-4620-ab45-1628f2142019	Projector	sci-projector-e8541f2c	0	7	2024-05-14 14:03:31.551+03	2024-05-14 14:03:31.551+03	0
+784c3e68-dab8-4095-b99f-546886f9b860	40058e28-1ad7-4620-ab45-1628f2142019	Cable & Adapter	sci-cable-adapter-ab63efa8	0	15	2024-05-14 14:03:31.552+03	2024-05-14 14:03:31.552+03	0
+6d71c377-d3e9-4999-a286-287248551e5d	a91c1c85-1e5f-47fe-83b4-1c5e7c60d7dc	Dishwasher	sci-dishwasher-1827305e	0	3	2024-05-14 14:03:31.471+03	2024-05-14 14:03:31.471+03	0
+9dd83976-5c8b-4769-a61d-e876804333f5	0f77d0aa-b07b-43a3-97f4-4bb520195683	Playstation Games	sci-playstation-games-a680f8a1	0	4	2024-05-14 14:03:31.482+03	2024-05-14 14:03:31.482+03	0
+033620e4-76c4-4814-9909-d00436edad58	cb5eebb4-2ec4-4b22-b87c-645a7ed734e7	Wearable technology	sci-wearable-technology-08bb4113	0	0	2024-05-14 14:03:31.476+03	2024-05-14 14:03:31.476+03	0
+e9db7dc2-1a3a-48d9-b501-3887c2bf9734	391ce7d0-48e3-4b5f-82b7-6a3019205949	Video camera	sci-video-camera-68877775	0	3	2024-05-14 14:03:31.485+03	2024-05-14 14:03:31.485+03	0
+6532e550-1de5-4937-aff9-31a5ed056d36	73764eab-5432-4068-8dfe-bebcdd03e726	combi boiler	sci-combi-boiler-ce8b173f	0	2	2024-05-14 14:03:31.488+03	2024-05-14 14:03:31.488+03	0
+59164f9d-37f0-4fb3-b1b0-dfd1f8b2f886	60849870-ad1d-4f31-aa0a-ff2d8ec9b912	Tablet	sci-tablet-54b8fac4	0	2	2024-05-14 14:03:31.493+03	2024-05-14 14:03:31.493+03	0
+ec0473e6-0b90-4ea2-aa17-670a9dffa4b1	f231e281-165e-45eb-b203-2861281c2a0e	TV Accessories	sci-tv-accessories-5432e357	0	3	2024-05-14 14:03:31.5+03	2024-05-14 14:03:31.5+03	0
+7f897964-6e7f-4d62-8909-274233a55cb3	40058e28-1ad7-4620-ab45-1628f2142019	Smart TV	sci-smart-tv-f25d2a0c	0	2	2024-05-14 14:03:31.551+03	2024-05-14 14:03:31.551+03	0
+810e405c-eb50-4d9d-b56d-4400115db817	dfd8a850-c768-4fcc-b45f-33a7884acd59	Baby Stroller and Pushchair	sci-baby-stroller-and-pushchair-1ea450d1	0	1	2024-05-14 13:11:56.688+03	2024-05-14 13:11:56.688+03	0
+f43706bf-48f8-41bb-ab19-56c0a7827c4d	ad272dcd-9924-427b-be6f-4b5148614eb6	Baby & Preschool	sci-baby--preschool-ea0ac49a	0	4	2024-05-14 13:11:56.698+03	2024-05-14 13:11:56.698+03	0
+2bd7bdad-1776-495a-8435-ed15dc21bb82	899ad6e5-5202-4067-918e-52db97504692	Gift Products	sci-gift-products-1ea22b67	0	3	2024-05-14 13:45:47.181+03	2024-05-14 13:45:47.181+03	0
+c3bbccc9-33a6-499c-bc69-22c2d62b3163	a91c1c85-1e5f-47fe-83b4-1c5e7c60d7dc	Built-in Sets	sci-built-in-sets-323b2273	0	6	2024-05-14 14:03:31.471+03	2024-05-14 14:03:31.471+03	0
+e121f3ab-8042-4983-a787-3078ec3d7642	cb5eebb4-2ec4-4b22-b87c-645a7ed734e7	VR Glasses	sci-vr-glasses-cc4f7b79	0	3	2024-05-14 14:03:31.476+03	2024-05-14 14:03:31.476+03	0
+44db8760-3ccf-451e-aca8-29686d9b2ae0	0f77d0aa-b07b-43a3-97f4-4bb520195683	Computer games	sci-computer-games-8e9b28fd	0	13	2024-05-14 14:03:31.483+03	2024-05-14 14:03:31.483+03	0
+7222360f-611d-484b-9fe5-ad4bf9a82ea0	0f77d0aa-b07b-43a3-97f4-4bb520195683	playstation	sci-playstation-ed2f5db3	0	1	2024-05-14 14:03:31.482+03	2024-05-14 14:03:31.482+03	0
+c86231aa-1347-48cd-bdce-27e6d94b0837	f231e281-165e-45eb-b203-2861281c2a0e	Phone Accessories	sci-phone-accessories-7b8b7238	0	2	2024-05-14 14:03:31.5+03	2024-05-14 14:03:31.5+03	0
+5a33364e-4567-4b9f-86d3-5aa10c49f41b	73764eab-5432-4068-8dfe-bebcdd03e726	Water heater	sci-water-heater-c5d47daa	0	5	2024-05-14 14:03:31.488+03	2024-05-14 14:03:31.488+03	0
+dc525144-d619-4966-9878-c204b9a72e27	60849870-ad1d-4f31-aa0a-ff2d8ec9b912	Computer & Tablet	sci-computer-tablet-7fade59b	0	0	2024-05-14 14:03:31.493+03	2024-05-14 14:03:31.493+03	0
+c40a1c61-c641-429b-8989-645ddfdbaf3e	40058e28-1ad7-4620-ab45-1628f2142019	Television	sci-television-99e2a3a4	0	1	2024-05-14 14:03:31.551+03	2024-05-14 14:03:31.551+03	0
+0a914d88-edf0-4c30-b2b1-8017144aba6e	a91c1c85-1e5f-47fe-83b4-1c5e7c60d7dc	Built-in Cooker	sci-built-in-cooker-f0e9794d	0	12	2024-05-14 14:03:31.471+03	2024-05-14 14:03:31.471+03	0
+8d0525d7-29ad-476f-b36e-231b1fb7411c	0f77d0aa-b07b-43a3-97f4-4bb520195683	Xbox	sci-xbox-543cf776	0	2	2024-05-14 14:03:31.482+03	2024-05-14 14:03:31.482+03	0
+0d0496b7-8e36-4689-a227-ee8f8e4cdf84	60849870-ad1d-4f31-aa0a-ff2d8ec9b912	Display card	sci-display-card-0ad04bfb	0	12	2024-05-14 14:03:31.494+03	2024-05-14 14:03:31.494+03	0
+3dbb8e84-8d7d-4f7d-8aea-e08161559cf5	a16567ec-c620-47c8-a104-c30a4027aae3	Curling Iron	sci-curling-iron-4cd99f1a	0	2	2024-05-14 14:03:31.498+03	2024-05-14 14:03:31.498+03	0
+770352c3-b4f9-49b2-9873-6805d02442e1	40058e28-1ad7-4620-ab45-1628f2142019	OLED TV	sci-oled-tv-adffd1fa	0	4	2024-05-14 14:03:31.551+03	2024-05-14 14:03:31.551+03	0
+8873b3ab-7b66-4bd6-9d2e-12ea305bb20c	40058e28-1ad7-4620-ab45-1628f2142019	TV Screen Protector	sci-tv-screen-protector-c66748b3	0	17	2024-05-14 14:03:31.552+03	2024-05-14 14:03:31.552+03	0
+9097ced5-6bca-4bb1-bc02-bf992a49e5c8	a91c1c85-1e5f-47fe-83b4-1c5e7c60d7dc	Freezer	sci-freezer-176ee816	0	1	2024-05-14 14:03:31.471+03	2024-05-14 14:03:31.471+03	0
+dc6fbee4-6794-4a06-8652-1f9f7ed8f20a	0f77d0aa-b07b-43a3-97f4-4bb520195683	Console Accessories	sci-console-accessories-32be4411	0	5	2024-05-14 14:03:31.482+03	2024-05-14 14:03:31.482+03	0
+aeeeba5b-ab68-494a-b44d-97be129e0c8f	73764eab-5432-4068-8dfe-bebcdd03e726	Air Humidifier	sci-air-humidifier-72a2744a	0	8	2024-05-14 14:03:31.488+03	2024-05-14 14:03:31.488+03	0
+c9a4744c-8b7d-402e-bde6-61c2e48c5cf8	f231e281-165e-45eb-b203-2861281c2a0e	Computer Accessory	sci-computer-accessory-e7fa1381	0	1	2024-05-14 14:03:31.5+03	2024-05-14 14:03:31.5+03	0
+5dd1bcc1-b0de-4488-b5b5-0f2f2edf4431	60849870-ad1d-4f31-aa0a-ff2d8ec9b912	Printer & Scanner	sci-printer-scanner-4cb064b6	0	5	2024-05-14 14:03:31.493+03	2024-05-14 14:03:31.493+03	0
+3ea52630-1390-42cc-87aa-da8a14c19118	40058e28-1ad7-4620-ab45-1628f2142019	TV & Picture & Sound	sci-tv-picture-sound-57d7843c	0	0	2024-05-14 14:03:31.551+03	2024-05-14 14:03:31.551+03	0
+4b108218-97ed-4781-8872-dc78a569c2c7	28f71e99-16f8-4899-a6ce-0fa3c0abd5d9	Sports Tops	sci-sports-tops-66fbdc9e	0	0	2024-05-14 14:05:20.923+03	2024-05-14 14:05:20.923+03	0
+39b52dd0-d3e1-4da7-b218-4362c966f0bd	28f71e99-16f8-4899-a6ce-0fa3c0abd5d9	Raincoat	sci-raincoat-bae6b91a	0	3	2024-05-14 14:05:20.924+03	2024-05-14 14:05:20.924+03	0
+e5a2fe74-3973-4bac-97e2-f7d70bcea8e5	28f71e99-16f8-4899-a6ce-0fa3c0abd5d9	Athlete	sci-athlete-cddcfea8	0	6	2024-05-14 14:05:20.924+03	2024-05-14 14:05:20.924+03	0
+3f4bc535-f796-41bf-b94e-9dea59b91286	28f71e99-16f8-4899-a6ce-0fa3c0abd5d9	Uniform	sci-uniform-1d57f954	0	7	2024-05-14 14:05:20.924+03	2024-05-14 14:05:20.924+03	0
+9bab9aa9-6337-445b-974f-b8a9a4e2034b	28f71e99-16f8-4899-a6ce-0fa3c0abd5d9	Sports hat	sci-sports-hat-857739c6	0	9	2024-05-14 14:05:20.924+03	2024-05-14 14:05:20.924+03	0
+82d4a113-8cfe-46e4-bab3-bdd26635eb04	28f71e99-16f8-4899-a6ce-0fa3c0abd5d9	Sports Coat	sci-sports-coat-2a7a7750	0	8	2024-05-14 14:05:20.924+03	2024-05-14 14:05:20.924+03	0
+aa016618-36e6-4bc0-9994-1b08193ab500	93ad0fa7-1482-4525-a010-11c809b4c197	Sports Bottom Wear	sci-sports-bottom-wear-a112fbf8	0	0	2024-05-14 14:05:21.031+03	2024-05-14 14:05:21.031+03	0
+07c69a5e-6b57-4f21-99ed-3368a4ed9203	279d5b87-88ac-4906-a624-eef7a121852d	crossfit	sci-crossfit-3f35b8e5	0	17	2024-05-14 14:05:21.077+03	2024-05-14 14:05:21.077+03	0
+da427e88-6ddc-4867-b6d4-1f089ab32c17	279d5b87-88ac-4906-a624-eef7a121852d	chin-up bar	sci-chin-up-bar-8e8c6229	0	9	2024-05-14 14:05:21.074+03	2024-05-14 14:05:21.074+03	0
+3cc89d74-c9dd-44f5-9d69-d7b2d99d5b09	93ad0fa7-1482-4525-a010-11c809b4c197	Leggings	sci-leggings-340371d8	0	2	2024-05-14 14:05:21.032+03	2024-05-14 14:05:21.032+03	0
+66bc2b06-fe58-4e3f-9864-e49f73c59c26	0f9163d0-ea12-44c5-8c1b-e8ffde9f7ae0	Running Shoes	sci-running-shoes-2959091a	0	2	2024-05-14 14:05:21.083+03	2024-05-14 14:05:21.083+03	0
+7c7bd0e7-a7a0-445f-80f5-3b42a026a09c	c6f732d6-d43a-4137-9c14-7e8df0733962	Towel	sci-towel-e84d3fd5	0	15	2024-05-14 14:05:21.093+03	2024-05-14 14:05:21.093+03	0
+76bdc6f0-a07a-4f36-a65f-9e1e3c8fc0d8	c6f732d6-d43a-4137-9c14-7e8df0733962	Water Sports Equipment	sci-water-sports-equipment-4c4fbdf4	0	8	2024-05-14 14:05:21.093+03	2024-05-14 14:05:21.093+03	0
+4212f7a0-478c-44b1-960d-953f38dabf5b	6d661025-10b7-4be9-95aa-792dcc06a17c	Cyclist Equipment	sci-cyclist-equipment-0b66b0c3	0	10	2024-05-14 14:05:21.109+03	2024-05-14 14:05:21.109+03	0
+ba4f43f0-ba39-4898-b60b-8c36d66ff09e	93ad0fa7-1482-4525-a010-11c809b4c197	Tracksuit Set	sci-tracksuit-set-264187d1	0	1	2024-05-14 14:05:21.031+03	2024-05-14 14:05:21.031+03	0
+a9698106-60b0-46f2-9d66-e01d6ff66552	279d5b87-88ac-4906-a624-eef7a121852d	Glove	sci-glove-fe24fc73	0	10	2024-05-14 14:05:21.074+03	2024-05-14 14:05:21.074+03	0
+6e16736a-30e5-463d-bf56-c71af36c7421	93ad0fa7-1482-4525-a010-11c809b4c197	Thermal Clothing	sci-thermal-clothing-45d6e103	0	4	2024-05-14 14:05:21.032+03	2024-05-14 14:05:21.032+03	0
+01b0c5fd-4a06-4ce0-b4e4-959409ad3e52	0f9163d0-ea12-44c5-8c1b-e8ffde9f7ae0	Tennis Shoes	sci-tennis-shoes-a56e7fd9	0	7	2024-05-14 14:05:21.083+03	2024-05-14 14:05:21.083+03	0
+d999a46e-e9db-4934-bff9-78713747ad91	c6f732d6-d43a-4137-9c14-7e8df0733962	Skateboard	sci-skateboard-42b67b76	0	2	2024-05-14 14:05:21.092+03	2024-05-14 14:05:21.092+03	0
+99a3ebdf-2b6f-4939-8e16-c0f69c442d51	0f9163d0-ea12-44c5-8c1b-e8ffde9f7ae0	Boots	sci-boots-44daddf9	0	16	2024-05-14 14:05:21.084+03	2024-05-14 14:05:21.084+03	0
+c1e28db5-9dbd-4fae-a8d8-9b9c16b9ea08	494e782c-2037-4ccc-a3db-a4fa9ce7866c	dresser	sci-dresser-79ec665e	0	10	2024-05-14 13:45:47.208+03	2024-05-14 13:45:47.208+03	0
+00c7787e-e1d5-497f-ad3d-fb5aef1d6d3e	04469fa1-cd9f-4a82-b322-58798594a335	Fitness Equipment	sci-fitness-equipment-9f877b25	0	2	2024-05-14 14:05:21.099+03	2024-05-14 14:05:21.099+03	0
+e834a023-9dff-4f69-807e-6b5d2c014155	c831bc11-5d71-411d-beb7-f9e1e8f4172d	Creatine	sci-creatine-79d98471	0	7	2024-05-14 14:05:21.104+03	2024-05-14 14:05:21.104+03	0
+737340f0-3c33-45c6-b26c-312c440e69f3	93ad0fa7-1482-4525-a010-11c809b4c197	Shorts	sci-shorts-e7b357bf	0	3	2024-05-14 14:05:21.032+03	2024-05-14 14:05:21.032+03	0
+7eb73558-850e-443c-9ae5-55cfc1330d99	93ad0fa7-1482-4525-a010-11c809b4c197	Sports Pants	sci-sports-pants-d80867a7	0	6	2024-05-14 14:05:21.032+03	2024-05-14 14:05:21.032+03	0
+1073d207-51c1-4307-891e-8ef821b28068	279d5b87-88ac-4906-a624-eef7a121852d	Elliptical Bike	sci-elliptical-bike-b14842c0	0	8	2024-05-14 14:05:21.073+03	2024-05-14 14:05:21.073+03	0
+cdbfacd1-8357-4f57-82cc-2bbd3304165f	6d661025-10b7-4be9-95aa-792dcc06a17c	City Bike	sci-city-bike-040c379d	0	4	2024-05-14 14:05:21.108+03	2024-05-14 14:05:21.108+03	0
+b70a5c6a-4027-4275-8381-bba2e77e8a5e	0f9163d0-ea12-44c5-8c1b-e8ffde9f7ae0	Fitness Shoes	sci-fitness-shoes-381070d9	0	9	2024-05-14 14:05:21.084+03	2024-05-14 14:05:21.084+03	0
+1a2083e1-2d6c-40df-a057-3424e5caef38	f20261a9-a2cd-487b-81eb-4c42d66d2947	Ball	sci-ball-14b1e122	0	0	2024-05-14 14:05:21.095+03	2024-05-14 14:05:21.095+03	0
+ba35cb01-b6a0-443c-b625-b43b7d2030a7	0f9163d0-ea12-44c5-8c1b-e8ffde9f7ae0	Slipper	sci-slipper-d3fb4352	0	13	2024-05-14 14:05:21.084+03	2024-05-14 14:05:21.084+03	0
+fd4a7dc1-1512-4ae2-aed5-7d7422732914	c6f732d6-d43a-4137-9c14-7e8df0733962	Tent Sleeping Bag	sci-tent-sleeping-bag-ca4c0e69	0	7	2024-05-14 14:05:21.093+03	2024-05-14 14:05:21.093+03	0
+b293ada2-30b7-455a-b6c4-aac27d66f0bc	c831bc11-5d71-411d-beb7-f9e1e8f4172d	L-Carnitine (CLA)	sci-l-carnitine-(cla)-6c5f8ab2	0	4	2024-05-14 14:05:21.104+03	2024-05-14 14:05:21.104+03	0
+1ae797c0-0a3d-4cae-9c36-49737f00f7b0	93ad0fa7-1482-4525-a010-11c809b4c197	Sock	sci-sock-78004780	0	5	2024-05-14 14:05:21.032+03	2024-05-14 14:05:21.032+03	0
+43a1b195-edbe-47d6-b1f6-3c9a3be1ac28	6d661025-10b7-4be9-95aa-792dcc06a17c	Children's Bicycles	sci-children's-bicycles-e9f1ee0e	0	8	2024-05-14 14:05:21.109+03	2024-05-14 14:05:21.109+03	0
+880d4193-acd6-46cc-afd8-17f50d143fb9	93ad0fa7-1482-4525-a010-11c809b4c197	Slipper	sci-slipper-331b1401	0	7	2024-05-14 14:05:21.032+03	2024-05-14 14:05:21.032+03	0
+12a122f1-afd0-4f03-8c5d-504f68ae5756	279d5b87-88ac-4906-a624-eef7a121852d	Dumbbell Set	sci-dumbbell-set-072d9c8d	0	7	2024-05-14 14:05:21.072+03	2024-05-14 14:05:21.072+03	0
+35df74ef-b7de-4a0b-80f5-7021f74883b3	279d5b87-88ac-4906-a624-eef7a121852d	Walking Belt	sci-walking-belt-6aa1fbc1	0	13	2024-05-14 14:05:21.075+03	2024-05-14 14:05:21.075+03	0
+99c6844c-fa9b-4270-8014-c756811bc28e	04469fa1-cd9f-4a82-b322-58798594a335	Exercise Bike	sci-exercise-bike-07253a2d	0	3	2024-05-14 14:05:21.099+03	2024-05-14 14:05:21.099+03	0
+6ff2845f-2f48-4a4c-b191-d7ed0c514055	0f9163d0-ea12-44c5-8c1b-e8ffde9f7ae0	Walking shoe	sci-walking-shoe-cee2920b	0	5	2024-05-14 14:05:21.083+03	2024-05-14 14:05:21.083+03	0
+c934b04c-4a9d-467e-9b12-055656cea893	0f9163d0-ea12-44c5-8c1b-e8ffde9f7ae0	Pool Slippers	sci-pool-slippers-65edd00d	0	20	2024-05-14 14:05:21.084+03	2024-05-14 14:05:21.084+03	0
+cf86b5d1-3cbd-4f3d-b0d4-5cf476c85755	c6f732d6-d43a-4137-9c14-7e8df0733962	Sports equipment	sci-sports-equipment-c192275b	0	0	2024-05-14 14:05:21.092+03	2024-05-14 14:05:21.092+03	0
+f411fd12-2e32-477c-b005-2381a4f38b5e	04469fa1-cd9f-4a82-b322-58798594a335	Yoga Supplies	sci-yoga-supplies-366f97be	0	5	2024-05-14 14:05:21.099+03	2024-05-14 14:05:21.099+03	0
+ae51ec81-6999-4b07-a58f-4c2e6528d9ec	c831bc11-5d71-411d-beb7-f9e1e8f4172d	Power and Performance	sci-power-and-performance-819430cf	0	5	2024-05-14 14:05:21.104+03	2024-05-14 14:05:21.104+03	0
+fc98cdd3-fd7d-4477-ad53-34ac11589e24	c6f732d6-d43a-4137-9c14-7e8df0733962	Tent	sci-tent-98822def	0	14	2024-05-14 14:05:21.093+03	2024-05-14 14:05:21.093+03	0
+54c505ba-12f9-4cfa-a9d3-0f79c84406a7	6d661025-10b7-4be9-95aa-792dcc06a17c	Mountain bike	sci-mountain-bike-a6ceb685	0	5	2024-05-14 14:05:21.108+03	2024-05-14 14:05:21.108+03	0
+b12d43a4-1c7d-4afe-966a-34bf28b3b804	93ad0fa7-1482-4525-a010-11c809b4c197	Tracksuit	sci-tracksuit-3dc7277d	0	8	2024-05-14 14:05:21.032+03	2024-05-14 14:05:21.032+03	0
+29c6b476-3c62-4f84-8717-b90c77ebee91	279d5b87-88ac-4906-a624-eef7a121852d	Boxing Glove	sci-boxing-glove-e1723e66	0	6	2024-05-14 14:05:21.071+03	2024-05-14 14:05:21.071+03	0
+3ea0c45e-a3dd-4e4d-a5a1-179976d1f5e7	0f9163d0-ea12-44c5-8c1b-e8ffde9f7ae0	Skateboarding Shoes	sci-skateboarding-shoes-a4ebe933	0	11	2024-05-14 14:05:21.084+03	2024-05-14 14:05:21.084+03	0
+dcd9dfe7-54d7-4a13-bcf2-49e3e9091dcd	0f9163d0-ea12-44c5-8c1b-e8ffde9f7ae0	Ski Shoes	sci-ski-shoes-cd37d588	0	18	2024-05-14 14:05:21.084+03	2024-05-14 14:05:21.084+03	0
+3a8dc2d1-d6a5-4237-bb17-efa803408dbf	9cb5d682-5413-4c4a-bd69-ea0999a35be0	Blanket	sci-blanket-ce7e8530	0	10	2024-05-14 13:45:47.149+03	2024-05-14 13:45:47.149+03	0
+9539b75e-8431-41c5-9923-6ac4ca1031cc	9cb5d682-5413-4c4a-bd69-ea0999a35be0	Electric blanket	sci-electric-blanket-a8e3ba30	0	12	2024-05-14 13:45:47.149+03	2024-05-14 13:45:47.149+03	0
+d3d035d4-59f7-4ed5-90cf-d6e1518d0de7	73764eab-5432-4068-8dfe-bebcdd03e726	water heater	sci-water-heater-f2270dea	0	6	2024-05-14 14:03:31.488+03	2024-05-14 14:03:31.488+03	0
+d43327ed-542b-47d4-a727-ff6962e3b951	c6f732d6-d43a-4137-9c14-7e8df0733962	Mountaineering & Climbing	sci-mountaineering-climbing-24063560	0	5	2024-05-14 14:05:21.092+03	2024-05-14 14:05:21.092+03	0
+d2948d12-c091-4326-be7b-35eb393ab08f	c6f732d6-d43a-4137-9c14-7e8df0733962	Leech	sci-leech-ddc9e607	0	16	2024-05-14 14:05:21.093+03	2024-05-14 14:05:21.093+03	0
+e5a33907-6649-4af2-a196-4d39ce4bd5da	04469fa1-cd9f-4a82-b322-58798594a335	Horizontal bar	sci-horizontal-bar-ff09a07a	0	8	2024-05-14 14:05:21.1+03	2024-05-14 14:05:21.1+03	0
+882942ba-6754-42f6-8957-cb6a92bc3988	c831bc11-5d71-411d-beb7-f9e1e8f4172d	Carbohydrate	sci-carbohydrate-8c84d141	0	3	2024-05-14 14:05:21.104+03	2024-05-14 14:05:21.104+03	0
+b44ff7d9-6f77-4702-8328-016fffaa3890	28f71e99-16f8-4899-a6ce-0fa3c0abd5d9	Sports T-Shirt	sci-sports-t-shirt-b538c21b	0	1	2024-05-14 14:05:20.923+03	2024-05-14 14:05:20.923+03	0
+b780d440-0aaa-4f3f-8214-25f854900a68	6d661025-10b7-4be9-95aa-792dcc06a17c	Pilates Balls	sci-pilates-balls-1a51fd02	0	2	2024-05-14 14:05:21.108+03	2024-05-14 14:05:21.108+03	0
+c744d878-7d11-4c6e-8598-a1ad7da8ea7b	279d5b87-88ac-4906-a624-eef7a121852d	Mat	sci-mat-e1b1d800	0	3	2024-05-14 14:05:21.071+03	2024-05-14 14:05:21.071+03	0
+8fd7006b-52e3-41af-817e-46ea9e37f63e	279d5b87-88ac-4906-a624-eef7a121852d	Rowing Equipment	sci-rowing-equipment-bd19cd0f	0	15	2024-05-14 14:05:21.076+03	2024-05-14 14:05:21.076+03	0
+54013615-f57d-4453-a769-1b64f858c06b	0f9163d0-ea12-44c5-8c1b-e8ffde9f7ae0	Outdoor Boots	sci-outdoor-boots-2fe0c78a	0	12	2024-05-14 14:05:21.084+03	2024-05-14 14:05:21.084+03	0
+a4fd1146-c022-4f7b-91a1-2a2efe4fb658	0f9163d0-ea12-44c5-8c1b-e8ffde9f7ae0	Artificial Field Shoes	sci-artificial-field-shoes-40621494	0	3	2024-05-14 14:05:21.083+03	2024-05-14 14:05:21.083+03	0
+9ad2f4c6-2168-4c2d-84b9-4576a32e97c4	f20261a9-a2cd-487b-81eb-4c42d66d2947	Basketball Ball	sci-basketball-ball-2dd35b0d	0	1	2024-05-14 14:05:21.095+03	2024-05-14 14:05:21.095+03	0
+f093275d-ea73-4fd3-9d80-e2433d5a3d10	04469fa1-cd9f-4a82-b322-58798594a335	Dumbbell Set	sci-dumbbell-set-7fe50ca5	0	6	2024-05-14 14:05:21.099+03	2024-05-14 14:05:21.099+03	0
+19d9c112-484a-4375-aeb9-0d9a4c2a2b52	c831bc11-5d71-411d-beb7-f9e1e8f4172d	Amino acid	sci-amino-acid-396473a6	0	2	2024-05-14 14:05:21.104+03	2024-05-14 14:05:21.104+03	0
+3872a66f-51dd-425f-8c3b-7b3aca57f52f	28f71e99-16f8-4899-a6ce-0fa3c0abd5d9	Sweatshirt	sci-sweatshirt-432bcec6	0	5	2024-05-14 14:05:20.924+03	2024-05-14 14:05:20.924+03	0
+dd2d1d84-c382-4ddb-86d9-6c6444e99399	279d5b87-88ac-4906-a624-eef7a121852d	Elastic Band	sci-elastic-band-e5e62af1	0	1	2024-05-14 14:05:21.071+03	2024-05-14 14:05:21.071+03	0
+99dc54ee-1a3d-4593-8458-754629c336c5	6d661025-10b7-4be9-95aa-792dcc06a17c	Thermos	sci-thermos-1c1817f9	0	1	2024-05-14 14:05:21.108+03	2024-05-14 14:05:21.108+03	0
+2c7a5a03-f1de-4cb1-92da-5fd6aba40563	279d5b87-88ac-4906-a624-eef7a121852d	Exercise Bike	sci-exercise-bike-fcd9b6fa	0	12	2024-05-14 14:05:21.075+03	2024-05-14 14:05:21.075+03	0
+b104178b-0808-41ce-ad5b-c4fc0879fc3a	0f9163d0-ea12-44c5-8c1b-e8ffde9f7ae0	Basketball Shoes	sci-basketball-shoes-3c0a6a5c	0	4	2024-05-14 14:05:21.083+03	2024-05-14 14:05:21.083+03	0
+b6e9bfe4-c6c2-46ee-93c8-a235aed4edd2	c6f732d6-d43a-4137-9c14-7e8df0733962	Diving Equipment	sci-diving-equipment-ae9620b5	0	9	2024-05-14 14:05:21.093+03	2024-05-14 14:05:21.093+03	0
+ba7bee42-9920-4b8d-9e4b-71fba87a6d21	c6f732d6-d43a-4137-9c14-7e8df0733962	Tennis Equipment	sci-tennis-equipment-ac5e4e68	0	11	2024-05-14 14:05:21.093+03	2024-05-14 14:05:21.093+03	0
+c9039a98-8265-42f9-8492-a3bcdd52df60	04469fa1-cd9f-4a82-b322-58798594a335	Pilates Materials	sci-pilates-materials-be795344	0	1	2024-05-14 14:05:21.099+03	2024-05-14 14:05:21.099+03	0
+dc107993-3a97-4ec7-aa5a-548f61ac59b0	6d661025-10b7-4be9-95aa-792dcc06a17c	Road Bikes	sci-road-bikes-aae316a9	0	7	2024-05-14 14:05:21.108+03	2024-05-14 14:05:21.108+03	0
+6f60571c-f5d5-42e8-a3fa-d10d020cffaa	c831bc11-5d71-411d-beb7-f9e1e8f4172d	Protein Bar	sci-protein-bar-e2026920	0	8	2024-05-14 14:05:21.104+03	2024-05-14 14:05:21.104+03	0
+f36152b3-0014-4082-ae0b-7103f998043f	28f71e99-16f8-4899-a6ce-0fa3c0abd5d9	Sports Bra	sci-sports-bra-9e09a5bc	0	4	2024-05-14 14:05:20.924+03	2024-05-14 14:05:20.924+03	0
+e23b8a8d-1335-401d-887d-ee0dd25f7439	279d5b87-88ac-4906-a624-eef7a121852d	Home Gym Equipment	sci-home-gym-equipment-c329c015	0	0	2024-05-14 14:05:21.071+03	2024-05-14 14:05:21.071+03	0
+5d59554e-b234-4eb4-866a-36197f3a9691	279d5b87-88ac-4906-a624-eef7a121852d	kettlebell	sci-kettlebell-cadd9b81	0	11	2024-05-14 14:05:21.075+03	2024-05-14 14:05:21.075+03	0
+a68d3fd9-4dbe-40bf-a670-6942a19842c7	0f9163d0-ea12-44c5-8c1b-e8ffde9f7ae0	Outdoor Shoes	sci-outdoor-shoes-eb49b30e	0	6	2024-05-14 14:05:21.083+03	2024-05-14 14:05:21.083+03	0
+12bdc427-555f-4757-bd71-8318fed83d0a	0f9163d0-ea12-44c5-8c1b-e8ffde9f7ae0	Snowboard Boots	sci-snowboard-boots-99ba6b6a	0	19	2024-05-14 14:05:21.084+03	2024-05-14 14:05:21.084+03	0
+d5762cf0-3035-4f2d-aa99-ae4dcfa099cf	c6f732d6-d43a-4137-9c14-7e8df0733962	Skate	sci-skate-d7cf56b6	0	3	2024-05-14 14:05:21.092+03	2024-05-14 14:05:21.092+03	0
+221f386b-cb53-437d-b737-1f8c32e41c66	04469fa1-cd9f-4a82-b322-58798594a335	Fitness Condition	sci-fitness-condition-5165ff29	0	0	2024-05-14 14:05:21.099+03	2024-05-14 14:05:21.099+03	0
+fb25c53b-7726-41ff-972f-53ac898a4c60	c831bc11-5d71-411d-beb7-f9e1e8f4172d	Shaker	sci-shaker-19c852e3	0	9	2024-05-14 14:05:21.104+03	2024-05-14 14:05:21.104+03	0
+896703c3-1ff2-4f54-93ec-9acf1b6c1177	6d661025-10b7-4be9-95aa-792dcc06a17c	Bicycle	sci-bicycle-560831a7	0	0	2024-05-14 14:05:21.108+03	2024-05-14 14:05:21.108+03	0
+6374ad09-b0ee-4ec7-a96a-61d89990b396	c6f732d6-d43a-4137-9c14-7e8df0733962	Skiing and Snowboarding	sci-skiing-and-snowboarding-bd1408f6	0	12	2024-05-14 14:05:21.093+03	2024-05-14 14:05:21.093+03	0
+e273d03e-788a-4f0c-a362-116a14357159	6d661025-10b7-4be9-95aa-792dcc06a17c	Cycling Glasses	sci-cycling-glasses-8436b70d	0	11	2024-05-14 14:05:21.109+03	2024-05-14 14:05:21.109+03	0
+1158dfe0-0fe4-40b9-b29f-b7d28975a18f	279d5b87-88ac-4906-a624-eef7a121852d	Jump Rope	sci-jump-rope-1c150869	0	5	2024-05-14 14:05:21.071+03	2024-05-14 14:05:21.071+03	0
+73e60edb-5f47-4263-bd2a-51fc3eb06c9e	0f9163d0-ea12-44c5-8c1b-e8ffde9f7ae0	Snow Boot	sci-snow-boot-490f6906	0	17	2024-05-14 14:05:21.084+03	2024-05-14 14:05:21.084+03	0
+524204d6-8e37-442f-ae6e-9701e6d92aaf	0f9163d0-ea12-44c5-8c1b-e8ffde9f7ae0	Sea Shoes	sci-sea-shoes-5c1b1cd7	0	10	2024-05-14 14:05:21.084+03	2024-05-14 14:05:21.084+03	0
+610659ce-a9fd-4f91-a40b-b09b02dcc4ed	c6f732d6-d43a-4137-9c14-7e8df0733962	Sea beach	sci-sea-beach-4ffd75cd	0	1	2024-05-14 14:05:21.092+03	2024-05-14 14:05:21.092+03	0
+877607e9-6610-474d-8b0c-75f983efdb44	c6f732d6-d43a-4137-9c14-7e8df0733962	Mats	sci-mats-a04741c2	0	17	2024-05-14 14:05:21.093+03	2024-05-14 14:05:21.093+03	0
+ae6b2fa7-b938-4eb3-8aa5-5ebb2c44e239	6d661025-10b7-4be9-95aa-792dcc06a17c	Electric Bicycles	sci-electric-bicycles-e0fc6a06	0	9	2024-05-14 14:05:21.109+03	2024-05-14 14:05:21.109+03	0
+a4da0b5f-5b57-41df-b368-e5345019b2c9	c831bc11-5d71-411d-beb7-f9e1e8f4172d	Sports Nutrition	sci-sports-nutrition-24b600dd	0	0	2024-05-14 14:05:21.104+03	2024-05-14 14:05:21.104+03	0
+49882c14-0fd1-4523-8b7e-581dbd8897ff	c6f732d6-d43a-4137-9c14-7e8df0733962	Action Camera	sci-action-camera-f24a22dc	0	6	2024-05-14 14:05:21.093+03	2024-05-14 14:05:21.093+03	0
+51fe175d-815e-43e5-8bff-62af38ba3d64	279d5b87-88ac-4906-a624-eef7a121852d	Hand Bow	sci-hand-bow-add780e7	0	2	2024-05-14 14:05:21.071+03	2024-05-14 14:05:21.071+03	0
+5fd503a7-ba32-4204-848a-1956391a0fb1	0f9163d0-ea12-44c5-8c1b-e8ffde9f7ae0	Volleyball Shoes	sci-volleyball-shoes-139fbff5	0	8	2024-05-14 14:05:21.084+03	2024-05-14 14:05:21.084+03	0
+a9a7f8be-7761-4340-b89d-a706ea431ca2	6d661025-10b7-4be9-95aa-792dcc06a17c	Foldable Bicycles	sci-foldable-bicycles-aecc17a9	0	6	2024-05-14 14:05:21.108+03	2024-05-14 14:05:21.108+03	0
+0f385ab0-0d1a-403e-826e-95eb98e189b2	0f9163d0-ea12-44c5-8c1b-e8ffde9f7ae0	Sandals	sci-sandals-6c65e55b	0	14	2024-05-14 14:05:21.084+03	2024-05-14 14:05:21.084+03	0
+24b14951-2c9d-49da-ae33-d89fece6fe8b	04469fa1-cd9f-4a82-b322-58798594a335	Weight Plates	sci-weight-plates-23f4c988	0	7	2024-05-14 14:05:21.1+03	2024-05-14 14:05:21.1+03	0
+3b421517-185c-48cf-8026-7d2db81ca320	c831bc11-5d71-411d-beb7-f9e1e8f4172d	Protein Powder	sci-protein-powder-585d6cc1	0	1	2024-05-14 14:05:21.104+03	2024-05-14 14:05:21.104+03	0
+0fc6c3bd-9d29-42dc-980c-511e76044d7b	279d5b87-88ac-4906-a624-eef7a121852d	Work Stations	sci-work-stations-95ad1aee	0	4	2024-05-14 14:05:21.071+03	2024-05-14 14:05:21.071+03	0
+1a56ccb2-6bce-4759-9cca-c2b725e04b90	0f9163d0-ea12-44c5-8c1b-e8ffde9f7ae0	Sneakers	sci-sneakers-f8dcd879	0	0	2024-05-14 14:05:21.083+03	2024-05-14 14:05:21.083+03	0
+2f051109-9cd7-47a1-bb5a-6c6a92270e75	0f9163d0-ea12-44c5-8c1b-e8ffde9f7ae0	Boot	sci-boot-8bdc7d49	0	15	2024-05-14 14:05:21.084+03	2024-05-14 14:05:21.084+03	0
+86113209-8190-4d96-8785-8e9623c3bfee	c6f732d6-d43a-4137-9c14-7e8df0733962	Camping tools	sci-camping-tools-469a1021	0	4	2024-05-14 14:05:21.092+03	2024-05-14 14:05:21.092+03	0
+461abd90-5c18-4491-b34b-6b6844237e22	279d5b87-88ac-4906-a624-eef7a121852d	Boxing Bandage	sci-boxing-bandage-657adaf7	0	16	2024-05-14 14:05:21.077+03	2024-05-14 14:05:21.077+03	0
+788c4adf-aca7-470c-bbd0-ca3cb3b01fc1	c6f732d6-d43a-4137-9c14-7e8df0733962	Archery	sci-archery-7744009e	0	13	2024-05-14 14:05:21.093+03	2024-05-14 14:05:21.093+03	0
+3a1f8b95-452d-42e0-b82c-b5ebf940186a	04469fa1-cd9f-4a82-b322-58798594a335	Treadmill	sci-treadmill-d876732e	0	4	2024-05-14 14:05:21.099+03	2024-05-14 14:05:21.099+03	0
+2b19e771-c76a-4c19-aaec-950220471eb1	c831bc11-5d71-411d-beb7-f9e1e8f4172d	Food Supplement & Vitamins	sci-food-supplement-vitamins-c9db9df9	0	6	2024-05-14 14:05:21.104+03	2024-05-14 14:05:21.104+03	0
+f7c4d2a0-2c49-4e21-afcf-c2bae96c118e	6d661025-10b7-4be9-95aa-792dcc06a17c	Bicycle	sci-bicycle-5ec9fdb2	0	3	2024-05-14 14:05:21.108+03	2024-05-14 14:05:21.108+03	0
+cf09c475-97c7-416a-b49d-2ba7dad63bb8	279d5b87-88ac-4906-a624-eef7a121852d	Pilates ball	sci-pilates-ball-ec331753	0	14	2024-05-14 14:05:21.075+03	2024-05-14 14:05:21.075+03	0
+1c9a7280-579c-4843-bfcc-d3351d21f7ef	0f9163d0-ea12-44c5-8c1b-e8ffde9f7ae0	sneakers	sci-sneakers-b46310d2	0	1	2024-05-14 14:05:21.083+03	2024-05-14 14:05:21.083+03	0
+8382fd3a-20c7-4971-8a0f-61008ef2d9e6	c6f732d6-d43a-4137-9c14-7e8df0733962	Fishing Supplies	sci-fishing-supplies-5906114a	0	10	2024-05-14 14:05:21.093+03	2024-05-14 14:05:21.093+03	0
+6f5e68f7-6eab-4eb3-a7b6-1d6db6a08015	f20261a9-a2cd-487b-81eb-4c42d66d2947	Soccer ball	sci-soccer-ball-9635cb9b	0	2	2024-05-14 14:05:21.095+03	2024-05-14 14:05:21.095+03	0
+13191a2b-d9a0-4d15-9019-086fb2551f0e	6d661025-10b7-4be9-95aa-792dcc06a17c	Bicycle Helmets	sci-bicycle-helmets-4c4db8c2	0	12	2024-05-14 14:05:21.109+03	2024-05-14 14:05:21.109+03	0
+7ef73ca7-1bf5-4b0d-b95c-6105336d3aa8	28f71e99-16f8-4899-a6ce-0fa3c0abd5d9	Jacket & Vest	sci-jacket-vest-13cf992f	0	2	2024-05-14 14:05:20.923+03	2024-05-14 14:05:20.923+03	0
+d71b1798-2478-4cc3-be81-d51f00f2ef1f	528394a5-f619-4fa0-a4ad-051b02a68b3a	Sweatshirt	sci-sweatshirt-b0bb5902	0	2	2024-05-14 13:11:56.645+03	2024-05-14 13:11:56.645+03	0
+7015fcba-096a-48ac-80e6-e0217137a42f	528394a5-f619-4fa0-a4ad-051b02a68b3a	Doll	sci-doll-ddce68ed	0	12	2024-05-14 13:11:56.647+03	2024-05-14 13:11:56.647+03	0
+7147b557-5d08-4a2f-a610-40c4eeec2db2	71cfdae4-3481-4e62-992e-343daa87a243	Baby Soaps	sci-baby-soaps-6434bcfe	0	5	2024-05-14 13:11:56.678+03	2024-05-14 13:11:56.678+03	0
+64ed1580-ed87-4621-86f8-c564543f4906	00047106-3139-4c17-9115-e9785f6484d9	Underwear & Sleepwear	sci-underwear--sleepwear-e681909d	0	4	2024-05-14 13:11:56.669+03	2024-05-14 13:11:56.669+03	0
+\.
+
+
+--
+-- Name: categories categories_pkey; Type: CONSTRAINT; Schema: public; Owner: postgres
+--
+
+ALTER TABLE ONLY public.categories
+    ADD CONSTRAINT categories_pkey PRIMARY KEY (id);
+
+
+--
+-- Name: subcategories subcategories_pkey; Type: CONSTRAINT; Schema: public; Owner: postgres
+--
+
+ALTER TABLE ONLY public.subcategories
+    ADD CONSTRAINT subcategories_pkey PRIMARY KEY (id);
+
+
+--
+-- Name: subcategoryitems subcategoryitems_pkey; Type: CONSTRAINT; Schema: public; Owner: postgres
+--
+
+ALTER TABLE ONLY public.subcategoryitems
+    ADD CONSTRAINT subcategoryitems_pkey PRIMARY KEY (id);
+
+
+--
+-- Name: categories_link_key; Type: INDEX; Schema: public; Owner: postgres
+--
+
+CREATE UNIQUE INDEX categories_link_key ON public.categories USING btree (link);
+
+
+--
+-- Name: subcategories_link_key; Type: INDEX; Schema: public; Owner: postgres
+--
+
+CREATE UNIQUE INDEX subcategories_link_key ON public.subcategories USING btree (link);
+
+
+--
+-- Name: subcategoryitems_link_key; Type: INDEX; Schema: public; Owner: postgres
+--
+
+CREATE UNIQUE INDEX subcategoryitems_link_key ON public.subcategoryitems USING btree (link);
+
+
+--
+-- Name: subcategories subcategories_category_fkey; Type: FK CONSTRAINT; Schema: public; Owner: postgres
+--
+
+ALTER TABLE ONLY public.subcategories
+    ADD CONSTRAINT subcategories_category_fkey FOREIGN KEY (category) REFERENCES public.categories(id);
+
+
+--
+-- Name: subcategoryitems subcategoryitems_subcategory_fkey; Type: FK CONSTRAINT; Schema: public; Owner: postgres
+--
+
+ALTER TABLE ONLY public.subcategoryitems
+    ADD CONSTRAINT subcategoryitems_subcategory_fkey FOREIGN KEY (subcategory) REFERENCES public.subcategories(id);
+
+
+--
+-- PostgreSQL database dump complete
+--
+

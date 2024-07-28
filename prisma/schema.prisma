@@ -1,0 +1,63 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+/// This table contains check constraints and requires additional setup for migrations. Visit https://pris.ly/d/check-constraints for more info.
+model categories {
+  id            String          @id @default(dbgenerated("uuid_generate_v4()")) @db.Uuid
+  name          String          @db.VarChar(100)
+  link          String          @unique @db.VarChar(109)
+  product_count Int             @default(0)
+  index         Int             @default(0)
+  created_at    DateTime        @default(now()) @db.Timestamptz(6)
+  updated_at    DateTime        @default(now()) @db.Timestamptz(6)
+  clicks        Decimal         @default(0) @db.Decimal
+  subcategories subcategories[]
+}
+
+/// This table contains check constraints and requires additional setup for migrations. Visit https://pris.ly/d/check-constraints for more info.
+model subcategories {
+  id               String             @id @default(dbgenerated("uuid_generate_v4()")) @db.Uuid
+  category         String             @db.Uuid
+  name             String             @db.VarChar(100)
+  index            Int                @default(0)
+  link             String             @unique @db.VarChar(109)
+  product_count    Int                @default(0)
+  created_at       DateTime           @default(now()) @db.Timestamptz(6)
+  updated_at       DateTime           @default(now()) @db.Timestamptz(6)
+  clicks           Decimal            @default(0) @db.Decimal
+  categories       categories         @relation(fields: [category], references: [id], onDelete: NoAction, onUpdate: NoAction)
+  subcategoryitems subcategoryitems[]
+}
+
+/// This table contains check constraints and requires additional setup for migrations. Visit https://pris.ly/d/check-constraints for more info.
+model subcategoryitems {
+  id            String        @id @default(dbgenerated("uuid_generate_v4()")) @db.Uuid
+  subcategory   String        @db.Uuid
+  name          String        @db.VarChar(100)
+  link          String        @unique @db.VarChar(109)
+  product_count Int           @default(0)
+  index         Int           @default(0)
+  created_at    DateTime      @default(now()) @db.Timestamptz(6)
+  updated_at    DateTime      @default(now()) @db.Timestamptz(6)
+  clicks        Decimal       @default(0) @db.Decimal
+  subcategories subcategories @relation(fields: [subcategory], references: [id], onDelete: NoAction, onUpdate: NoAction)
+}
+
+enum user_auth_roles {
+  user
+  seller
+  admin_1 @map("admin-1")
+  admin_2 @map("admin-2")
+  admin_3 @map("admin-3")
+}
+
+enum user_methods {
+  google
+  password
+}
