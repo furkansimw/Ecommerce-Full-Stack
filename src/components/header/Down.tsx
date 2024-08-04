@@ -20,7 +20,7 @@ function Down({ cl }: Props) {
       <div className="wrap h-[64px] relative">
         <div className="h-[1px] absolute bottom-0 bg-gray-200 w-full"></div>
         <div className="h-full flex items-center justify-between">
-          <div className="h-full flex items-center">
+          <div className="h-full flex items-center pt-1">
             <div className="h-9 w-9">
               <Link onClick={closeP} href={"/"}>
                 <img src="/mark.svg" alt="mark" />
@@ -35,18 +35,20 @@ function Down({ cl }: Props) {
                       key={`nav-${cl.link}-${aa}`}
                       onClick={() => clickUpList(cl.link)}
                       className={classNames(
-                        isactive && "!border-b-indigo-600",
-                        "ml-8 center relative cursor-pointer h-full pt-1 border-b-transparent border-b-2"
+                        "ml-8 center relative cursor-pointer h-full pt-1"
                       )}
                     >
                       <p
                         className={classNames(
                           isactive && "text-indigo-600",
-                          "text-gray-900 font-medium"
+                          "text-gray-700 font-medium"
                         )}
                       >
                         {cl.name}
                       </p>
+                      {isactive && (
+                        <div className="bg-indigo-600 h-[2px] absolute bottom-[2px] z-100 left-0 w-full"></div>
+                      )}
                     </li>
                   );
                 })}
@@ -64,7 +66,7 @@ function Down({ cl }: Props) {
                     .find((_cl) => _cl.link == active)
                     ?.subcategories.map((sc, ii) => (
                       <ul key={`sc-${sc.link}-${ii}`} className="w-full mr-10">
-                        <li className="mb-4 font-medium whitespace-nowrap text-base text-gray-900">
+                        <li className="mb-4 font-medium whitespace-nowrap text-base text-gray-700">
                           <p>{sc.name}</p>
                         </li>
                         {sc.subcategoryitems.map((sci, i) => (
@@ -83,6 +85,19 @@ function Down({ cl }: Props) {
               </div>
             </Out>
           </div>
+          <ul className="flex">
+            <div className="flex items-center">
+              <Link href={"/login"}>
+                <p className="text-sm text-gray-800 font-medium">Sign in</p>
+              </Link>
+              <div className="h-4 w-[1px] bg-gray-500 mx-4"></div>
+              <Link href={"/signup"}>
+                <p className="text-sm text-gray-800 font-medium">
+                  Create account
+                </p>
+              </Link>
+            </div>
+          </ul>
         </div>
       </div>
     </div>

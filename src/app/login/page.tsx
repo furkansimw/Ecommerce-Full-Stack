@@ -1,17 +1,16 @@
 "use client";
 
-import { Badge, BadgeFull, Loading } from "@/components/general/badge";
+import { Badge, StatusCard, Loading } from "@/components/general/badge";
 import GoogleButton from "@/components/google/google";
 import req from "@/functions/req";
-import { useQuery, useStatus } from "@/hooks/status";
+import { useStatus } from "@/hooks/status";
 import Link from "next/link";
 import { useSearchParams } from "next/navigation";
-import { FormEvent, useState } from "react";
+import { FormEvent } from "react";
 
 export default function LoginPage() {
   const searchParams = useSearchParams();
   const next = () => (window.location.href = searchParams.get("next") || "/");
-  // const [status, setStatus] = useState<IStatus>({});
   const { setData, setError, status, setLoading } = useStatus();
 
   const onSubmit = (e: FormEvent) => {
@@ -41,7 +40,7 @@ export default function LoginPage() {
 
   return (
     <>
-      <div className="flex mt-[-50px]  min-h-screen flex-col justify-center">
+      <div className="flex min-h-screen flex-col justify-center">
         <div className="sm:mx-auto sm:w-full sm:max-w-sm">
           <img
             alt="Your Company"
@@ -97,7 +96,7 @@ export default function LoginPage() {
                 />
               </div>
             </div>
-            <BadgeFull status={status} />
+            <StatusCard status={status} />
             <div>
               <button tabIndex={4} className="button" type="submit">
                 Sign in

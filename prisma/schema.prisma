@@ -49,6 +49,77 @@ model subcategoryitems {
   subcategories subcategories @relation(fields: [subcategory], references: [id], onDelete: NoAction, onUpdate: NoAction)
 }
 
+/// This table contains check constraints and requires additional setup for migrations. Visit https://pris.ly/d/check-constraints for more info.
+model sellers {
+  id            String         @id @default(dbgenerated("uuid_generate_v4()")) @db.Uuid
+  name          String         @unique @db.VarChar(130)
+  link          String         @unique @db.VarChar(139)
+  product_count Int            @default(0)
+  review_count  Int            @default(0)
+  avg_rate      Int            @default(1) @db.SmallInt
+  created_at    DateTime       @default(now()) @db.Timestamptz(6)
+  indexing      Decimal        @default(0) @db.Decimal
+  updated_at    DateTime       @default(now()) @db.Timestamptz(6)
+  sellers_info  sellers_info[]
+  users         users[]
+}
+
+/// This table contains check constraints and requires additional setup for migrations. Visit https://pris.ly/d/check-constraints for more info.
+model users {
+  id         String        @id @default(dbgenerated("uuid_generate_v4()")) @db.Uuid
+  email      String        @unique @db.VarChar(255)
+  password   String?       @db.VarChar(100)
+  method     users_methods @default(password)
+  active     Boolean       @default(true)
+  role       users_roles   @default(user)
+  cart_count Int           @default(0) @db.SmallInt
+  addresses  Json          @default("[]")
+  created_at DateTime      @default(now()) @db.Timestamptz(6)
+  updated_at DateTime      @default(now()) @db.Timestamptz(6)
+  seller_id  String?       @db.Uuid
+  name       String?       @db.VarChar(100)
+  sessions   sessions[]
+  sellers    sellers?      @relation(fields: [seller_id], references: [id], onDelete: NoAction, onUpdate: NoAction)
+  users_auth users_auth?
+}
+
+/// This table contains check constraints and requires additional setup for migrations. Visit https://pris.ly/d/check-constraints for more info.
+model users_auth {
+  id                     String   @id @default(dbgenerated("uuid_generate_v4()")) @db.Uuid
+  user_id                String   @unique @db.Uuid
+  pass_wrong_count       Int      @default(0) @db.SmallInt
+  pass_wrong_date        DateTime @default(now()) @db.Timestamptz(6)
+  email_reset_code_count Int      @default(0) @db.SmallInt
+  email_reset_code_date  DateTime @default(now()) @db.Timestamptz(6)
+  pass_change_date       DateTime @default(now()) @db.Timestamptz(6)
+  login_date             DateTime @default(now()) @db.Timestamptz(6)
+  logout_date            DateTime @default(now()) @db.Timestamptz(6)
+  created_at             DateTime @default(now()) @db.Timestamptz(6)
+  updated_at             DateTime @default(now()) @db.Timestamptz(6)
+  users                  users    @relation(fields: [user_id], references: [id], onDelete: NoAction, onUpdate: NoAction)
+}
+
+model sessions {
+  id         String   @id @default(dbgenerated("uuid_generate_v4()")) @db.Uuid
+  user_id    String   @db.Uuid
+  session    String   @default(dbgenerated("uuid_generate_v4()")) @db.Uuid
+  created_at DateTime @default(now()) @db.Timestamptz(6)
+  updated_at DateTime @default(now()) @db.Timestamptz(6)
+  users      users    @relation(fields: [user_id], references: [id], onDelete: Cascade, onUpdate: NoAction)
+}
+
+model sellers_info {
+  id         String   @id @default(dbgenerated("uuid_generate_v4()")) @db.Uuid
+  seller_id  String   @db.Uuid
+  phone      String   @db.VarChar(100)
+  address    String   @db.VarChar(1000)
+  company    String   @db.VarChar(200)
+  category   String   @db.VarChar(200)
+  created_at DateTime @default(now()) @db.Timestamptz(6)
+  updated_at DateTime @default(now()) @db.Timestamptz(6)
+  sellers    sellers  @relation(fields: [seller_id], references: [id], onDelete: Cascade, onUpdate: NoAction)
+}
+
 enum user_auth_roles {
   user
   seller
@@ -60,4 +131,15 @@ enum user_auth_roles {
 enum user_methods {
   google
   password
+}
+
+enum users_methods {
+  password
+  google
+}
+
+enum users_roles {
+  user
+  seller
+  admin
 }

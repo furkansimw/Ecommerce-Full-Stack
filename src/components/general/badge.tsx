@@ -38,7 +38,7 @@ export function Badge({ type, text }: { type: BadgeType; text: string }) {
   );
 }
 
-export function BadgeFull({
+export function StatusCard({
   status: { loading, error, data },
 }: {
   status: IStatus;

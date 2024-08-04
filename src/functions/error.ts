@@ -8,7 +8,7 @@ export class CustomError extends Error {
   }
 }
 
-export const error = (
+export const createError = (
   message: string = "Bad request",
   status: number = 400
 ) => {
