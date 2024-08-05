@@ -1,7 +1,7 @@
 import db from "@/db/db";
 import { createError, errorWrap } from "@/functions/error";
 import { res } from "@/functions/res";
-import { AwsClient, OAuth2Client } from "google-auth-library";
+import { OAuth2Client } from "google-auth-library";
 import { createSession, httpOnly, maxAge, secure } from "../route";
 import redis from "@/redis/redis";
 import { times } from "@/functions/times";

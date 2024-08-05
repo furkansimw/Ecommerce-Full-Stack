@@ -11,7 +11,7 @@ async function Header() {
           Get free delivery on orders over $100
         </p>
       </div>
-      <Down cl={cl} />
+      <Down cl={cl} profile={{ cartCount: 0 }} />
     </header>
   );
 }

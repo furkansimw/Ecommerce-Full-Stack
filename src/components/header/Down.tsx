@@ -3,17 +3,34 @@
 import { classNames } from "@/functions/classnames";
 import { ICategory } from "@/interfaces/ICategory";
 import Link from "next/link";
-import React, { useState } from "react";
+import React, { useEffect, useState } from "react";
 import Out from "../general/out";
+import { IconBag, IconPeople, IconSearch } from "../icons/icons";
+import { IProfile } from "@/interfaces/IUsers";
 
-type Props = { cl: ICategory[] };
+type Props = { cl: ICategory[]; profile: IProfile | null };
 
-function Down({ cl }: Props) {
+function Down({ cl, profile }: Props) {
+  const [cartCount, setCartCount] = useState(0);
   const [active, setActive] = useState<string | null>(null);
   const clickUpList = (link: string) =>
     setActive((p) => (p == link ? null : link));
 
   const closeP = () => setActive(null);
+
+  useEffect(() => {
+    if (profile === null) {
+      try {
+        const c = localStorage.getItem("cartCount");
+        setCartCount(parseInt(c ?? "0"));
+      } catch (error) {
+        localStorage.setItem("cartCount", "0");
+        setCartCount(0);
+      }
+    } else {
+      setCartCount(profile.cartCount);
+    }
+  }, [profile]);
 
   return (
     <div className="bg-white">
@@ -85,18 +102,37 @@ function Down({ cl }: Props) {
               </div>
             </Out>
           </div>
-          <ul className="flex">
-            <div className="flex items-center">
-              <Link href={"/login"}>
-                <p className="text-sm text-gray-800 font-medium">Sign in</p>
-              </Link>
-              <div className="h-4 w-[1px] bg-gray-500 mx-4"></div>
-              <Link href={"/signup"}>
-                <p className="text-sm text-gray-800 font-medium">
-                  Create account
-                </p>
-              </Link>
-            </div>
+          <ul className="flex items-center">
+            {profile ? (
+              <li className="flex icon items-center">
+                <button>
+                  <IconPeople />
+                </button>
+              </li>
+            ) : (
+              <li className="flex items-center">
+                <Link href={"/login"}>
+                  <p className="text-sm text-gray-800 font-medium">Sign in</p>
+                </Link>
+                <div className="h-4 w-[1px] bg-gray-500 mx-4"></div>
+                <Link href={"/signup"}>
+                  <p className="text-sm text-gray-800 font-medium">
+                    Create account
+                  </p>
+                </Link>
+              </li>
+            )}
+            <li className="h-6 w-6 mx-6 icon">
+              <button>
+                <IconSearch />
+              </button>
+            </li>
+            <li className="h-6 w-6">
+              <button className="flex items-center icon">
+                <IconBag />
+                <p className="text-base ml-2">{cartCount}</p>
+              </button>
+            </li>
           </ul>
         </div>
       </div>
